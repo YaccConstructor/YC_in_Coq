@@ -156,57 +156,43 @@ Proof.
   destruct LI as [l2_w H1].
 
   elim H1.
-
   intro.
-
   left.
 
   unfold language_intersection.
-
   apply (conj l2_w H).
 
   intro.
-  
   right.
-
   apply HR.
 
   unfold language_intersection.
-
   apply (conj l2_w H).
 
   elim ls.
-
   simpl.
 
   intros F; case F.
-
   clear ls.
-  
+
   intros LA ls H0 LU.
-
   simpl language_list_union in LU.
-
   case LU.
 
   intro H1.
 
   unfold language_intersection.
-
   unfold language_intersection in H1.
 
   destruct H1.
 
   split.
-
   exact H.
 
   simpl language_list_union.
 
   left; exact H1.
-
   intro.
-
   apply H0 in H.
 
   unfold language_intersection.
