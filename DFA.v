@@ -11,54 +11,52 @@ Definition word := list ter.
 Definition language := word -> Prop.
 
 (** The type of deterministic finite automata. ***)
-Record dfa : Type := mkDfa {
-  states_n: nat;
-  start: t states_n;
-  final: list (t states_n);
-  next: (t states_n) -> ter -> (t states_n);
+Record dfa { n : nat }: Type := mkDfa {
+  start: t n;
+  final: list (t n);
+  next: (t n) -> ter -> (t n);
 }.
 
-Fixpoint final_state (d : dfa) (s: t (states_n d)) (w: word) : t (states_n d) :=
+Fixpoint final_state {n : nat} (d : dfa) (s: t n) (w: word) : t n :=
    match w with
      | nil => s 
      | h :: t => final_state d (next d s h) t 
   end.
 
-Definition accepts (d : dfa) (s: t (states_n d)) (w: word) : Prop :=
+Definition accepts (n : nat) (d : dfa) (s: t n) (w: word) : Prop :=
   In (final_state d s w) (final d). 
     
 
 (** The type of deterministic finite automata. ***)
-Record s_dfa: Type := s_mkDfa {
-  s_states_n: nat;
-  s_start: t s_states_n;
-  s_final: t s_states_n;
-  s_next: (t s_states_n) -> ter -> (t s_states_n);
+Record s_dfa { n : nat }: Type := s_mkDfa {
+  s_start: t n;
+  s_final: t n;
+  s_next: (t n) -> ter -> (t n);
 }.
 
-Fixpoint s_final_state (d : s_dfa) (s: t (s_states_n d)) (w: word) : t (s_states_n d) :=
+Fixpoint s_final_state {n : nat} (d : s_dfa) (s: t n) (w: word) : t n :=
    match w with
      | nil => s 
      | h :: t => s_final_state d (s_next d s h) t 
   end.
 
-Definition s_accepts (d : s_dfa) (s: t (s_states_n d)) (w: word) : Prop :=
+Definition s_accepts {n : nat} (d : s_dfa (n:=n)) (s: t n) (w: word) : Prop :=
   (s_final_state d s w) = (s_final d).
 
-Definition dfa_language (d : dfa) := (accepts d (start d)).
+Definition dfa_language {n : nat} (d : dfa (n:=n)) := (accepts n d (start d)).
 
-Definition s_dfa_language (d : s_dfa) := (s_accepts d (s_start d)).
+Definition s_dfa_language {n : nat} (d : s_dfa (n:=n)) := (s_accepts d (s_start d)).
 
+Definition create_s_dfa {n : nat} (d : dfa (n:=n)) (h : t n) := s_mkDfa n (start d) h (next d).
 
-
-Fixpoint split_dfa_list (d : dfa) (f_list : list (t (states_n d)))
+Fixpoint split_dfa_list {n : nat} (d : dfa) (f_list : list (t n))
    : list s_dfa :=
   match f_list with
      | nil => nil
-     | h :: t => s_mkDfa (states_n d) (start d) h (next d) :: split_dfa_list d t
+     | h :: t =>  create_s_dfa d h :: split_dfa_list d t
   end.
 
-Definition split_dfa (d: dfa) := split_dfa_list d (final d).
+Definition split_dfa {n : nat} (d: dfa (n:=n)) := split_dfa_list d (final d).
   
 Definition language_union (l1 l2 : language) := fun w => (l1 w) \/ (l2 w).
 
@@ -147,7 +145,7 @@ Proof.
   intros a tail.
   intro HR.
   intro LI.
-  
+
   simpl.
 
   unfold language_intersection in LI.
@@ -201,6 +199,23 @@ Proof.
   apply distr.
   unfold language_intersection in H.
   exact H.
+Qed.
+
+Theorem T0: forall (n:nat) (d: dfa (n:=n)) (st : t n) (e : t n) (w: word),
+  (final_state d st w) =
+  (s_final_state (create_s_dfa d e) st w).
+Proof.
+  intros n d st e w.
+  revert st.
+  destruct d.
+  simpl.
+  unfold create_s_dfa. simpl.
+  induction w.
+  simpl.
+  reflexivity.
+  simpl.
+  intro st.
+  apply IHw.  
 Qed.
 
 Theorem T21: forall d : dfa, language_eq (dfa_language d) (language_list_union (map (s_dfa_language) (split_dfa d))).
