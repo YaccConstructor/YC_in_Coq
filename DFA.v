@@ -19,13 +19,13 @@ Record dfa { n : nat }: Type := mkDfa {
 
 Fixpoint final_state {n : nat} (d : dfa) (s: t n) (w: word) : t n :=
    match w with
-     | nil => s 
-     | h :: t => final_state d (next d s h) t 
+     | nil => s
+     | h :: t => final_state d (next d s h) t
   end.
 
 Definition accepts (n : nat) (d : dfa) (s: t n) (w: word) : Prop :=
-  In (final_state d s w) (final d). 
-    
+  In (final_state d s w) (final d).
+
 
 (** The type of deterministic finite automata. ***)
 Record s_dfa { n : nat }: Type := s_mkDfa {
@@ -36,8 +36,8 @@ Record s_dfa { n : nat }: Type := s_mkDfa {
 
 Fixpoint s_final_state {n : nat} (d : s_dfa) (s: t n) (w: word) : t n :=
    match w with
-     | nil => s 
-     | h :: t => s_final_state d (s_next d s h) t 
+     | nil => s
+     | h :: t => s_final_state d (s_next d s h) t
   end.
 
 Definition s_accepts {n : nat} (d : s_dfa (n:=n)) (s: t n) (w: word) : Prop :=
@@ -57,14 +57,14 @@ Fixpoint split_dfa_list {n : nat} (d : dfa) (f_list : list (t n))
   end.
 
 Definition split_dfa {n : nat} (d: dfa (n:=n)) := split_dfa_list d (final d).
-  
+
 Definition language_union (l1 l2 : language) := fun w => (l1 w) \/ (l2 w).
 
 Definition language_intersection (l1 l2 : language) := fun w => (l1 w) /\ (l2 w).
 
-Definition language_eq (l1  l2 : language) := forall w : word, l1 w <-> l2 w. 
+Definition language_eq (l1  l2 : language) := forall w : word, l1 w <-> l2 w.
 
-Lemma mk_laguage_eq : forall (l1 l2 : language), (forall w : word, l1 w -> l2 w) -> (forall w : word, l2 w -> l1 w) -> language_eq l1 l2. 
+Lemma mk_laguage_eq : forall (l1 l2 : language), (forall w : word, l1 w -> l2 w) -> (forall w : word, l2 w -> l1 w) -> language_eq l1 l2.
 Proof.
   intros l1 l2 H1 H2.
   unfold language_eq.
@@ -79,7 +79,7 @@ Theorem th1 : forall l1 l2 l3 : language, language_eq (language_intersection l1 
 Proof.
   intros.
   apply mk_laguage_eq.
-  intros w H.   
+  intros w H.
   unfold language_intersection in H.
   destruct H.
   unfold language_union in H0.
@@ -107,7 +107,7 @@ Proof.
   unfold language_intersection.
   destruct H.
   split.
-  
+
   exact H.
   unfold language_union.
   right.
@@ -128,7 +128,7 @@ Proof.
   destruct H.
   auto.
 Qed.
-  
+
 Theorem th2 : forall (l2 : language) (ls : list language),
     language_eq (language_intersection l2 (language_list_union ls))
                  (language_list_union (map (language_intersection l2) ls)).
@@ -215,7 +215,7 @@ Proof.
   reflexivity.
   simpl.
   intro st.
-  apply IHw.  
+  apply IHw.
 Qed.
 
 Theorem T21: forall d : dfa, language_eq (dfa_language d) (language_list_union (map (s_dfa_language) (split_dfa d))).
