@@ -11,7 +11,7 @@ Definition word := list ter.
 
 Definition language := word -> Prop.
 
-Record dfa { n : nat }: Type := mkDfa {
+Record dfa (n : nat): Type := mkDfa {
   start: t n;
   final: list (t n);
   next: (t n) -> ter -> (t n);
@@ -23,11 +23,9 @@ Fixpoint final_state {n : nat} (next_d : (t n) -> ter -> (t n)) (s: t n) (w: wor
      | h :: t => final_state next_d (next_d s h) t
   end.
 
-Definition accepts (n : nat) (d : dfa) (s: t n) (w: word) : Prop :=
-  In (final_state (next d) s w) (final d).
+Definition accepts (n : nat) (d : dfa n) (s: t n) (w: word) : Prop :=
+  In (final_state (next n d) s w) (final n d).
 
-
-(** The type of deterministic finite automata. ***)
 Record s_dfa (n : nat): Type := s_mkDfa {
   s_start: t n;
   s_final: t n;
@@ -38,20 +36,18 @@ Record s_dfa (n : nat): Type := s_mkDfa {
 Definition s_accepts {n : nat} (d : s_dfa n) (s: t n) (w: word) : Prop :=
   (final_state (s_next n d) s w) = (s_final n d).
 
-Definition dfa_language {n : nat} (d : dfa (n:=n)) := (accepts n d (start d)).
+Definition dfa_language (n : nat) (d : dfa n) := (accepts n d (start n d)).
 
 Definition s_dfa_language {n : nat} (d : s_dfa n) := (s_accepts d (s_start n d)).
-
-Definition create_s_dfa (n : nat) (st_d : t n) (next_d : (t n) -> ter -> (t n)) (h : t n) := s_mkDfa n st_d h next_d.
 
 Fixpoint split_dfa_list {n : nat}  (st_d : t n) (next_d : (t n) -> ter -> (t n)) (f_list : list (t n))
    : list (s_dfa n) :=
   match f_list with
      | nil => nil
-     | h :: t =>  create_s_dfa n st_d next_d h :: split_dfa_list st_d next_d t
+     | h :: t => (s_mkDfa n st_d h next_d) :: split_dfa_list st_d next_d t
   end.
 
-Definition split_dfa {n : nat} (d: dfa (n:=n)) := split_dfa_list (start d) (next d) (final d).
+Definition split_dfa {n : nat} (d: dfa n) := split_dfa_list (start n d) (next n d) (final n d).
 
 Definition language_union (l1 l2 : language) := fun w => (l1 w) \/ (l2 w).
 
@@ -70,7 +66,7 @@ Proof.
 Qed.
 
 
-Theorem th1 : forall l1 l2 l3 : language, language_eq (language_intersection l1 (language_union l2 l3)) (language_union (language_intersection l1 l2) (language_intersection l1 l3)).
+Theorem lang_distr : forall l1 l2 l3 : language, language_eq (language_intersection l1 (language_union l2 l3)) (language_union (language_intersection l1 l2) (language_intersection l1 l3)).
 Proof.
   intros.
   apply mk_laguage_eq.
@@ -124,7 +120,7 @@ Proof.
   auto.
 Qed.
 
-Theorem th2 : forall (l2 : language) (ls : list language),
+Theorem lang_distr_2 : forall (l2 : language) (ls : list language),
     language_eq (language_intersection l2 (language_list_union ls))
                  (language_list_union (map (language_intersection l2) ls)).
 Proof.
@@ -196,27 +192,9 @@ Proof.
   exact H.
 Qed.
 
-(*
-Theorem T0: forall (n:nat) (start0: t n) (final0 : list (t n)) (next0 : t n -> ter -> t n) (st : t n) (e : t n) (w: word),
-  (final_state next0 st w) =
-  (s_final_state next0 st w).
-Proof.
-  intros.
-  revert st.
-  simpl.
-  unfold create_s_dfa.
-  induction w.
-  simpl.
-  reflexivity.
-  simpl.
-  intro st.
-  apply IHw.
-Qed.
-*)
 
-
-Theorem T21_1: forall (n : nat) (d : dfa (n:=n)) (w : word),
-    dfa_language d w -> language_list_union (map s_dfa_language (split_dfa d)) w.
+Theorem T21_1: forall (n : nat) (d : dfa n) (w : word),
+    dfa_language n d w -> language_list_union (map s_dfa_language (split_dfa d)) w.
 Proof.
   intros n d w.
   destruct d.
@@ -248,8 +226,8 @@ Proof.
 Qed.
 
 
-Theorem T21_2: forall (n : nat) (d : dfa (n:=n)) (w : word),
-    language_list_union (map s_dfa_language (split_dfa d)) w -> dfa_language d w.
+Theorem T21_2: forall (n : nat) (d : dfa n) (w : word),
+    language_list_union (map s_dfa_language (split_dfa d)) w -> dfa_language n d w.
 Proof.
   intros n d w.
   destruct d.
@@ -276,7 +254,7 @@ Proof.
 Qed.
 
 
-Theorem T21:  forall (n : nat) (d : dfa (n:=n)), language_eq (dfa_language d) (language_list_union (map (s_dfa_language) (split_dfa d))).
+Theorem T21:  forall (n : nat) (d : dfa n), language_eq (dfa_language n d) (language_list_union (map (s_dfa_language) (split_dfa d))).
 Proof.
   intros.
   apply mk_laguage_eq.
