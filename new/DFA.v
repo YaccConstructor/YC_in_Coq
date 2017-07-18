@@ -1,6 +1,9 @@
 Require Import List.
 Require Import Fin.
 Require Import BaseLang.
+Require Import Definitions.
+Require Import Derivation.
+
 
 Record dfa (n : nat): Type := mkDfa {
   start: t n;
@@ -8,14 +11,18 @@ Record dfa (n : nat): Type := mkDfa {
   next: (t n) -> ter -> (t n);
 }.
 
+Definition word := list ter.
+
+(* phrase+ter -> word *)
+
 Fixpoint final_state {n : nat} (next_d : (t n) -> ter -> (t n)) (s: t n) (w: word) : t n :=
-   match w with
+  match w with
      | nil => s 
      | h :: t => final_state next_d (next_d s h) t 
   end.
 
 Definition accepts (n : nat) (d : dfa n) (s: t n) (w: word) : Prop :=
-  In (final_state (next n d) s w) (final n d). 
+  In (final_state (next d) s w) (final d). 
     
 Record s_dfa (n : nat): Type := s_mkDfa {
   s_start: t n;
@@ -25,23 +32,23 @@ Record s_dfa (n : nat): Type := s_mkDfa {
 
 
 Definition s_accepts {n : nat} (d : s_dfa n) (s: t n) (w: word) : Prop :=
-  (final_state (s_next n d) s w) = (s_final n d).
+  (final_state (s_next d) s w) = (s_final d).
 
-Definition dfa_language (n : nat) (d : dfa n) := (accepts n d (start n d)).
+Definition dfa_language (n : nat) (d : dfa n) := (accepts d (start d)).
 
-Definition s_dfa_language {n : nat} (d : s_dfa n) := (s_accepts d (s_start n d)).
+Definition s_dfa_language {n : nat} (d : s_dfa n) := (s_accepts d (s_start d)).
 
 Fixpoint split_dfa_list {n : nat}  (st_d : t n) (next_d : (t n) -> ter -> (t n)) (f_list : list (t n))
    : list (s_dfa n) :=
   match f_list with
      | nil => nil
-     | h :: t => (s_mkDfa n st_d h next_d) :: split_dfa_list st_d next_d t
+     | h :: t => (s_mkDfa st_d h next_d) :: split_dfa_list st_d next_d t
   end.
 
-Definition split_dfa {n : nat} (d: dfa n) := split_dfa_list (start n d) (next n d) (final n d).
+Definition split_dfa {n : nat} (d: dfa n) := split_dfa_list (start d) (next d) (final d).
   
-Theorem lemma2_3_1: forall (n : nat) (d : dfa n) (w : word),
-    dfa_language n d w -> language_list_union (map s_dfa_language (split_dfa d)) w.
+(*Theorem lemma2_3_1: forall (n : nat) (d : dfa n) (w : word),
+    dfa_language d w -> language_list_union (map s_dfa_language (split_dfa d)) w.
 Proof.
   intros n d w.
   destruct d.
@@ -107,5 +114,5 @@ Proof.
   apply lemma2_3_1.
   apply lemma2_3_2.
 Qed.
-
+*)
 
