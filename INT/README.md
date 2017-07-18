@@ -1,4 +1,4 @@
 # YC_in_Coq
-Formalization of some parts of YC
 
-Formalization of CF language was taken from Jana Hofmann, Saarland University, http://www.ps.uni-saarland.de/~hofmann/bachelor.php. 
+A proof that if L1 is CFL and L2 is regular then L1 ∩ L2 is context free which does not use PDA’s.
+http://www.cs.umd.edu/~gasarch/BLOGPAPERS/cfg.pdf
