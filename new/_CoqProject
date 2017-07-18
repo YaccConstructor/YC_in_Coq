@@ -1,0 +1,15 @@
+-R . cf
+./Base.v
+./BaseLang.v
+./Binarize.v
+./Chomsky.v
+./Dec_Empty.v
+./Dec_Word.v
+./Definitions.v
+./Derivation.v
+./ElimE.v
+./ElimU.v
+./Inlining.v
+./Lists.v
+./Separate.v
+./Symbols.v
