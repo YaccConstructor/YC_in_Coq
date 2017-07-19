@@ -114,7 +114,8 @@ VFILES:=Base.v\
   Inlining.v\
   Lists.v\
   Separate.v\
-  Symbols.v
+  Symbols.v\
+  DFA.v
 
 ifneq ($(filter-out archclean clean cleanall printenv,$(MAKECMDGOALS)),)
 -include $(addsuffix .d,$(VFILES))
