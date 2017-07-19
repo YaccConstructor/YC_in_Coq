@@ -72,11 +72,12 @@ Record s_dfa (n : nat): Type := s_mkDfa {
 Definition s_accepts {n : nat} (d : s_dfa n) (s: t n) (w: word) : Prop :=
   (final_state (s_next d) s w) = (s_final d).
 
-(**
 
-Definition dfa_language (n : nat) (d : dfa n) := (accepts d (start d)).
+Definition dfa_language (n : nat) (d : dfa n) (v : phrase) (is_t : terminal v) :=
+  (accepts d (start d)) (phrase_to_word is_t).
 
-Definition s_dfa_language {n : nat} (d : s_dfa n) := (s_accepts d (s_start d)).
+Definition s_dfa_language {n : nat} (d : s_dfa n) (v : phrase) (is_t : terminal v) :=
+  (s_accepts d (s_start d)) (phrase_to_word is_t).
 
 Fixpoint split_dfa_list {n : nat}  (st_d : t n) (next_d : (t n) -> ter -> (t n)) (f_list : list (t n))
    : list (s_dfa n) :=
@@ -87,13 +88,13 @@ Fixpoint split_dfa_list {n : nat}  (st_d : t n) (next_d : (t n) -> ter -> (t n))
 
 Definition split_dfa {n : nat} (d: dfa n) := split_dfa_list (start d) (next d) (final d).
 
-Theorem lemma2_3_1: forall (n : nat) (d : dfa n) (w : word),
-    dfa_language d w -> language_list_union (map s_dfa_language (split_dfa d)) w.
+Theorem lemma2_3_1: forall (n : nat) (d : dfa n) (v : phrase) (is_t : terminal v),
+    dfa_language d is_t -> language_list_union (map s_dfa_language (split_dfa d)) is_t.
 Proof.
-  intros n d w.
+  intros n d v.
   destruct d.
   set (d := {| start := start0; final := final0; next := next0 |}).
-  intro H1.
+  intros is_t H1.
   unfold split_dfa.
   simpl.
   unfold dfa_language in H1.
@@ -120,10 +121,8 @@ Proof.
 Qed.
 
 
-
-
-Theorem lemma2_3_2: forall (n : nat) (d : dfa n) (w : word),
-    language_list_union (map s_dfa_language (split_dfa d)) w -> dfa_language n d w.
+Theorem lemma2_3_2: forall (n : nat) (d : dfa n) (v : phrase) (is_t : terminal v),
+    language_list_union (map s_dfa_language (split_dfa d)) is_t -> dfa_language d is_t.
 Proof.
   intros n d w.
   destruct d.
@@ -134,7 +133,7 @@ Proof.
   simpl.
   unfold accepts.
   simpl.
-  intro H1.
+  intros is_t H1.
   induction final0.
   auto.
   simpl in H1.
@@ -150,11 +149,12 @@ Proof.
 Qed.
 
 
-Theorem lemma2_3:  forall (n : nat) (d : dfa n), (dfa_language n d) [==] (language_list_union (map (s_dfa_language) (split_dfa d))).
+Theorem lemma2_3:  forall (n : nat) (d : dfa n), (dfa_language d) [==] (language_list_union (map (s_dfa_language) (split_dfa d))).
 Proof.
   intros.
   apply mk_laguage_eq.
   apply lemma2_3_1.
   apply lemma2_3_2.
-Qed. **)
+Qed.
+
 
