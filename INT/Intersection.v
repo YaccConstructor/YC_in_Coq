@@ -743,26 +743,34 @@ Module Intersection.
     
     
     (* We can transform G into an equivalent grammar in Chomsky normal form. *)
-    Let newG := normalize G.
-    Goal chomsky newG.
+    Let normalized_G := normalize G.
+    Goal  chomsky normalized_G.
     Proof. apply chomsky_normalform. Qed.
-    Goal forall A w, Vs A el dom G -> language G A w <-> language (normalize G) A w.
+    Goal forall A w, Vs A el dom G -> language G A w <-> language normalized_G A w.
     Proof. intros; eapply language_normalform; eauto. Qed. 
 
- 
-    (* TODO?: newG ~~> G *)
+    (* some comment *)
     Theorem final_theorem:
       forall (v: var) (w : word),
-        s_dfa_language SDFA w /\ language newG v (to_phrase w) <->
-        language (convert_grammar newG SDFA) (V (s_start SDFA, v, s_final SDFA)) (to_phrase w).
+        Vs v el dom G -> 
+        s_dfa_language SDFA w /\ language G v (to_phrase w) <->
+        language (convert_grammar normalized_G SDFA) (V (s_start SDFA, v, s_final SDFA)) (to_phrase w).
     Proof.
       assert (x: t n).
       { clear SDFA dfa_state.
         destruct n.
         - apply Nat.nlt_0_r in H_n_is_positive; inversion H_n_is_positive.
         - apply F1. }
-      intros. apply iff_sym.
-      apply main; auto; apply chomsky_normalform.
+      intros v w EL; split; intros.
+      { apply main_forward; auto.
+        apply chomsky_normalform.
+        destruct H as [DFA GR].
+        split; [|eapply language_normalform in GR]; eauto. }
+      { apply main_backward in H; auto.
+        - destruct H as [DFA GR].
+          split; [|eapply language_normalform]; eauto. 
+          exact GR.
+        - apply chomsky_normalform. }
     Qed.
 
   End Main2.
