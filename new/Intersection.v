@@ -101,7 +101,9 @@ Proof.
 Qed.
 
 Definition triple_to_var (n : nat) (from : t n) (v : var) (to : t n)  : var :=
-  v.
+  match v with
+    V val => V (val * n * n + (proj1_sig (to_nat from)) * n + (proj1_sig (to_nat to)))
+  end.
 
 Fixpoint values_list (n : nat) : list (t n) :=
   match  n with
@@ -117,12 +119,26 @@ Definition convert_terminal (n : nat) (d : s_dfa n)
            (v : var) (t : ter) : list rule :=
     map (convert_terminal_2 d v t) (values_list n).
 
+Definition convert_nonterminal_2 (n : nat) (d : s_dfa n)
+           (v : var) (v1 v2 : var) (s1 s2 s3: t n): rule :=
+  R (triple_to_var s1 v s3) [Vs (triple_to_var s1 v1 s2); Vs (triple_to_var s2 v2 s3)].
+  
+Definition convert_nonterminal (n : nat) (d : s_dfa n)
+           (v : var) (v1 v2 : var) : list rule :=
+  flat_map (fun s1 =>
+         flat_map (fun s2 =>
+                map (fun s3 =>
+                       convert_nonterminal_2 d v v1 v2 s1 s2 s3
+                    ) (values_list n)
+             ) (values_list n)
+      ) (values_list n).
+
 
 Definition convert_rule (n : nat) (d : s_dfa n)
            (r : rule) (g : grammar) (is_ch: chomsky g) (is_in : In r g) : list rule :=
   match (convert_rule_to_chomsky r) with
-  |   nonterm_rule v v1 v2 => nil 
-  |   terminal_rule v t => nil
+  |   nonterm_rule v v1 v2 => nil
+  |   terminal_rule v t => convert_terminal d v t
   |   err => nil
   end.
 
@@ -141,6 +157,22 @@ Definition convert_grammar (n : nat) (d : s_dfa n)
             (g : grammar) (is_ch: chomsky g): grammar :=
   in_flat_map (fun r (is_in : In r g) => convert_rule d is_ch is_in)
               (fun v => id).
-  
- 
+
+Definition g_language (G : grammar) (A : var) (u : phrase) (is_t : terminal u) : Prop :=
+  der G A u.
+
+Definition convert_start (n : nat) (d : s_dfa n) (v : var) : var :=
+  triple_to_var (s_start d) v (s_final d).
+
+Theorem main: forall n 
+    (d : s_dfa n) (g : grammar) (is_ch: chomsky g) (v : var),
+    ((s_dfa_language d) [/\] (g_language g v)) [==]
+    (g_language (convert_grammar d is_ch) v).
+Proof.
+  intros. 
+  apply mk_laguage_eq.
+  apply main_forward.
+  apply main_backward.
+Qed.
+
 
