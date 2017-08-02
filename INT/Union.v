@@ -277,22 +277,96 @@ Module Union.
     exact H3.
     exact H1.
   Qed.
+
  *)
+  Lemma grammar_close : forall (l: list rule) (p : @phrase Tt (labeled_Vt Vt)) (v0 : var)
+      (P : var -> Prop), 
+      der l v0 p ->
+      (P v0) ->
+      (forall r pr v1, In (R r pr) l -> (P r) -> In (Vs v1) pr -> P v1) ->
+      (forall vp, In (Vs vp) p -> P vp).
+  Proof.
+    intros l p v0 P d is_p H0.
+    induction d.
+    - intros.
+      simpl in H.
+      destruct H.
+      simplify_eq H.
+      intro.
+      rewrite <- H1.
+      exact is_p.
+      contradiction.
+    - intros.
+      apply (H0 A l0).
+      exact H.
+      exact is_p.
+      exact H1.
+    - intros.
+      assert (In (Vs vp) v \/ In (Vs vp) u \/ In (Vs vp) w).
+      { apply in_app_or in H.
+      destruct H.
+      right; left; exact H.
+      apply in_app_or in H.
+      destruct H.
+      left; exact H.
+      right; right; exact H.
+      }
+      clear H.
+      destruct H1.
+      + apply IHd2.
+        apply IHd1.
+        exact is_p.
+        apply in_or_app.
+        right.
+        apply in_or_app.
+        left.
+        auto.
+        exact H.
+      + apply IHd1.
+        exact is_p.
+        destruct H.
+        apply in_or_app.
+        left.
+        auto.
+        apply in_or_app.
+        right.
+        apply in_or_app.
+        right.
+        auto.
+  Qed.
 
   Lemma grammar_cut : forall (l1 l2 : list rule) (p : @phrase Tt (labeled_Vt Vt)) (v0 : var)
-      (P : symbol -> Prop), 
+      (P : var -> Prop), 
       der (l1 ++ l2) v0 p ->
-      (forall s pf, der (l1 ++ l2) v0 pf -> In s pf -> P s -> False) ->
-      (forall s p, In (R s p) l1 -> P (Vs s)) ->
+      (P v0) ->
+      (forall r pr v1, In (R r pr) (l1 ++ l2) -> (P r) -> In (Vs v1) pr -> P v1) ->
+      (forall r pr, In (R r pr) l1 -> (P r) -> False) ->
       der l2 v0 p.
   Proof.
     intros.
     induction H.
-    apply vDer.
-    admit.
-    
-  
-
+    - apply vDer.
+    - apply rDer.
+      apply in_app_or in H.
+      destruct H.
+      exfalso.
+      apply (H2 A l).
+      exact H.
+      exact H0.
+      exact H.
+    - apply (replN (B := B)).
+      apply (IHder1 H0).
+      apply IHder2.
+      apply (grammar_close H).
+      exact H0.
+      exact H1.
+      apply in_or_app.
+      right.
+      apply in_or_app.
+      left.
+      auto.
+  Qed.
+            
   Lemma der_exchange : forall (l1 l2 : list rule) (p : @phrase Tt (labeled_Vt Vt)) (v0 : var),
       der (l1 ++ l2) v0 p -> der (l2 ++ l1) v0 p.
   Proof.
@@ -331,6 +405,7 @@ Module Union.
     apply IHl.
     admit.
     left.
+
   Qed.
   
   Lemma same_union_bkw : forall (l : list (grammar * Vt)) (w : word),
