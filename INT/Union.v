@@ -589,7 +589,21 @@ Module Union.
     exact H1.
     exact H0.
   Qed.  
-  
+(*
+   g : grammar
+  v : Vt
+  l : list (grammar * Vt)
+  w : word
+  n : nat
+  v0 : Vt
+  H : der (update_grammar (Tt:=Tt) (length l) (g, v) ++ grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)
+  IHl : der (grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) -> language_list_union (map grammar_to_language l) w
+  H0 : n = length l
+  H1 : der (update_grammar (Tt:=Tt) (length l) (g, v)) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)
+  ============================
+  der g (V v) (to_phrase (Tt:=Tt) Vt w)
+ *)
+  (*
   Lemma same_union_bkw_0 : forall (l : list (grammar * Vt)) (w : word) (n : nat) (v0 : Vt),
   der (grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) ->
   language_list_union (map grammar_to_language l) w.
@@ -616,15 +630,16 @@ Module Union.
     apply сut_grammar_0.
     exact H0.
     exact H.
-    
+       
   Qed.
+   *)
   
   Lemma same_union_bkw : forall (l : list (grammar * Vt)) (w : word),
-      grammar_to_languange (grammar_union l, start Vt) w ->
-      language_list_union (map grammar_to_languange l) w.
+      grammar_to_language (grammar_union l, start Vt) w ->
+      language_list_union (map grammar_to_language l) w.
   Proof.
     intros.
-    unfold grammar_to_languange in H.
+    unfold grammar_to_language in H.
 
     enough (der_start :
     forall (l : list (grammar * Vt)) (p : @phrase Tt (labeled_Vt Vt)),
@@ -639,35 +654,22 @@ Module Union.
     destruct H0. 
     remember (V (start Vt)) as st.
     remember (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) as p.
-    destruct H.
-    destruct w.
-    simpl in Heqp.
-    discriminate.
-    simpl in Heqp.
-    discriminate.
-    admit.
-    destruct B.
-    destruct l0.
-    admit.
-    
+   
     induction l.
     - simpl in H.
       exfalso.
-      remember (V (start Vt)) as st.
-      remember (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) as p.
-      
       assert (p = [Vs st]).
       apply empty_grammar.
       apply H.
-      rewrite Heqp in H0.
+      rewrite Heqp in H1.
       destruct w.
-      simpl in H0.
+      simpl in H1.
       discriminate.
-      simpl in H0.
+      simpl in H1.
       discriminate.
     - simpl.
       destruct a. 
-      unfold grammar_to_languange.
+      unfold grammar_to_language.
       enough (same_union_bkw_0 : forall
     (g : grammar) (v : Vt)
     (l : list (grammar * Vt))
