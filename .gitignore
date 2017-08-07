@@ -2,3 +2,11 @@
 **/*.glob
 **/*.v.d
 **/*.vo.aux
+*.vo
+*.glob
+*.v.d
+*.aux
+*.bak
+*~
+*.html
+*.css
