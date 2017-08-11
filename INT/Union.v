@@ -425,14 +425,14 @@ Module Union.
     destruct H.
     clear IHl.
     assert (n_start : forall v, (R (V (start Vt)) [Vs (V (lV (length l) v))] = R r pr -> False)).
-    { intros.
-    simplify_eq H2.
-    intros.
-    rewrite <- H3 in H0.
-    simpl in H0.
-    exact (P_0 H0).
-    }
-    
+    {
+      intros.
+      simplify_eq H2.
+      intros.
+      rewrite <- H3 in H0.
+      simpl in H0.
+      exact (P_0 H0).
+    }    
     destruct a.
     induction g.
     simpl in H.
@@ -588,96 +588,698 @@ Module Union.
     apply m_le_n with (m := (get_n r)) (n := (length l)).
     exact H1.
     exact H0.
-  Qed.  
-(*
-   g : grammar
-  v : Vt
-  l : list (grammar * Vt)
-  w : word
-  n : nat
-  v0 : Vt
-  H : der (update_grammar (Tt:=Tt) (length l) (g, v) ++ grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)
-  IHl : der (grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) -> language_list_union (map grammar_to_language l) w
-  H0 : n = length l
-  H1 : der (update_grammar (Tt:=Tt) (length l) (g, v)) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)
-  ============================
-  der g (V v) (to_phrase (Tt:=Tt) Vt w)
- *)
-  (*
-  Lemma same_union_bkw_0 : forall (l : list (grammar * Vt)) (w : word) (n : nat) (v0 : Vt),
-  der (grammar_union (Tt:=Tt) l) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) ->
-  language_list_union (map grammar_to_language l) w.
+  Qed.
+  
+
+  Lemma name1: forall w st g n,
+    der (map (update_rule n) g) (V (lV n st)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) ->
+    der g (V st) (to_phrase (Tt:=Tt) Vt w).
   Proof.
     intros.
-    induction l.
-    simpl in H.
-    admit.
-    simpl.
-    simpl in H.
-    enough (n <= (length l)).
-    assert (n < (length l) \/ n = (length l)).
-    apply le_lt_or_eq.
-    apply H0.
-    clear H0.
-    destruct H1.
-    right.
-    apply IHl.
-    admit.
-    left.
+    
+  Admitted.
+ 
+ 
+  Lemma name2: forall w st n g,
+      der
+        (R (V (start Vt)) [Vs (V (lV n st))]
+           :: map (update_rule n) g) (V (start Vt))
+        (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) ->
+     
+      der (map (update_rule n) g) (V (lV n st))
+          (to_phrase (Tt:=Tt) (labeled_Vt Vt) w).
+  Proof.
+ 
+  Admitted.
+
+  Lemma rule_n (a : rule)
+        (n0 n : nat)
+        (v0 : Vt)
+        (p : @phrase Tt (labeled_Vt Vt))
+        (H : update_rule n a = R (V (lV n0 v0)) p): n0 = n.
+  Proof.
     destruct a.
-    unfold grammar_to_language.
-    assert (der (update_grammar (Tt:=Tt) (length l) (g, v)) (V (lV n v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)).
-    apply сut_grammar_0.
-    exact H0.
+    destruct v.
+    simpl in H.
+    injection H as H.
+    auto.
+  Qed.
+
+  Lemma rule_p_n (a : rule)
+        (n0 n : nat)
+        v
+        (v0 : Vt)
+        (p : @phrase Tt (labeled_Vt Vt))
+        (H : update_rule n a = R v p):
+      In (Vs (V (lV n0 v0))) p -> n0 = n.
+  Proof.
+    destruct a.
+    destruct v1.
+    simpl in H.
+    injection H as H.
+    intro.
+    rewrite <- H0 in H1.
+    clear H0 H p v.
+    induction p0.
+    contradiction.
+    simpl in H1.
+    destruct H1.
+    destruct a.
+    discriminate.
+    destruct v.
+    simpl in H.
+    injection H as H.
+    auto.
+    auto.
+  Qed.
+
+  Lemma inner_in A (a : A) u v w : In a (u ++ v ++ w) -> In a v \/ In a (u ++ w).
+  Proof.
+    intro.
+    apply in_app_or in H.
+    destruct H.
+    right.
+    apply in_or_app.
+    auto.
+    apply in_app_or in H.
+    destruct H.
+    auto.
+    right.
+    apply in_or_app.
+    auto.
+  Qed.
+
+  Lemma inner_in_rev A (a : A) u v w : In a v \/ In a (u ++ w) -> In a (u ++ v ++ w).
+  Proof.
+    intro.
+    destruct H.
+    apply in_or_app.
+    right.
+    apply in_or_app.
+    left.
     exact H.
-       
+    apply in_app_or in H.
+    destruct H.
+    auto.
+    auto.
+  Qed.
+
+  Lemma rule_induction
+        (l : list (grammar * Vt))
+        (r : rule)
+        (P : rule -> Prop)
+        (P_st : forall v, P (R (V (start Vt)) [Vs v]))
+        (P_up : forall n a, P (update_rule n a)):
+        In r (grammar_union (Tt:=Tt) l) -> P r.
+  Proof.
+    intro.
+    induction l.
+    contradiction.
+    simpl in H.
+    apply in_app_or in H.
+    destruct H.
+    destruct a.
+    clear IHl.
+    induction g.
+    simpl in H.
+    destruct H.
+    rewrite <- H.
+    apply P_st.
+    contradiction.
+    destruct H.
+    rewrite <- H.
+    apply P_st.
+    destruct H.
+    rewrite <- H.
+    apply P_up.
+    apply IHg.
+    simpl.
+    right.
+    exact H.
+    apply IHl.
+    apply H.
+  Qed.
+      
+  Lemma a_start (l : list (grammar * Vt))
+        (A : var)
+        (p : @phrase Tt (labeled_Vt Vt)):
+    der (grammar_union l) A p ->
+    In (Vs (V (start Vt))) p -> 
+    (V (start Vt) = A).
+  Proof.
+    intros.
+    induction H.
+    - destruct H0.
+      injection H as H.
+      auto.
+      contradiction.
+    - assert (R A l0 = R A l0 -> V (start Vt) = A).
+      apply rule_induction with (l := l) (r := (R A l0)) (P := (fun r => (r = R A l0) -> (V (start Vt))=A)).
+      intros.
+      injection H1 as H1.
+      auto.
+      intros.
+      destruct a.
+      destruct v.
+      simpl in H1.
+      injection H1 as H1.
+      exfalso.
+      clear H l H1 A.
+      revert p H2.
+      induction l0.
+      contradiction.
+      destruct H0.
+      intros.
+      rewrite H in H2.
+      destruct p.
+      discriminate.
+      destruct s.
+      discriminate.
+      destruct v0.
+      discriminate.
+      intros.
+      destruct p.
+      discriminate.
+      injection H2 as H2.
+      apply (IHl0 H p).
+      exact H0.
+      exact H.
+      auto.
+    - apply inner_in in H0.
+      destruct H0.
+      apply IHder2 in H0.
+      apply IHder1.
+      apply inner_in_rev.
+      left.
+      rewrite H0.
+      auto.
+      apply IHder1.
+      apply inner_in_rev.
+      right.
+      exact H0.
+  Qed.
+
+  
+  Lemma l3 : forall l n0 v0 v1 n1 (p : @phrase Tt (labeled_Vt Vt)),  
+      der (grammar_union l) (V (lV n0 v0)) p -> In (Vs (V (lV n1 v1))) p -> n0 = n1.
+  Proof.
+    intros.
+    remember (V (lV n0 v0)) as st.
+    revert n0 v0 Heqst n1 v1 H0.
+    induction H.
+    - intros.
+      rewrite Heqst in H0.
+      destruct H0.
+      injection H as H.
+      exact H.
+      contradiction.
+    - intros.
+      induction l.
+      contradiction.
+      simpl in H.
+      apply in_app_or in H.
+      destruct H.
+      destruct a.
+      induction g.
+      simpl in H.
+      destruct H.
+      injection H as H.
+      rewrite Heqst in H.
+      discriminate.
+      contradiction.
+      simpl in H.
+      destruct H.
+      injection H as H.
+      rewrite Heqst in H.
+      discriminate.
+      destruct H.
+      rewrite Heqst in H.
+      assert (n0 = (length l)).
+      apply rule_n with (a := a) (v0:=v0) (p := l0).
+      exact H.
+      assert (n1 = (length l)).
+      apply rule_p_n with (a := a) (v0:=v1) (v:=(V (lV n0 v0))) (p := l0).
+      exact H.
+      exact H0.
+      rewrite H1.
+      rewrite H2.
+      reflexivity.
+      apply IHg.
+      simpl.
+      right.
+      exact H.
+      apply IHl.
+      exact H.
+    - intros n0 v0 is_eq n1 v1 is_in.
+      apply inner_in in is_in.
+      destruct is_in.
+      + destruct B.
+        destruct l0.
+        assert (V (start Vt) = A).
+        apply a_start with (l:=l) (p:=(u ++ [Vs (V (start Vt))] ++ w)).
+        exact H.
+        apply inner_in_rev.
+        auto.
+        rewrite is_eq in H2.
+        discriminate.
+        assert (n = n1).
+        apply (IHder2 n v2) with (v1 := v1).
+        reflexivity.
+        exact H1.
+        assert (n0 = n).
+        apply (IHder1 n0 v0) with (v1 := v2).
+        exact is_eq.
+        apply inner_in_rev.
+        auto.
+        rewrite <- H2.
+        rewrite H3.
+        auto.
+      + apply IHder1 with (v0 := v0) (v1 := v1).
+        auto.
+        apply inner_in_rev.
+        auto.
+  Qed.
+
+  Lemma der_n_is_n (a : grammar * Vt)
+        (A : var)
+        (n : nat)
+        (p : @phrase Tt (labeled_Vt Vt)):
+   der (update_grammar (Tt:=Tt) n a) A p ->
+   forall v0 n0, In (Vs (V (lV n0 v0))) p -> (p = [Vs A]) \/ n = n0.
+  Proof.
+    intro.      
+    induction H.
+    - intros.
+      left.
+      reflexivity.
+    - intros.
+      right.
+      destruct a.
+      destruct H.
+      injection H as H.
+      rewrite <- H1 in H0.
+      destruct H0.
+      injection H0 as H0.
+      exact H0.
+      contradiction.
+      induction g.
+      contradiction.
+      destruct H.
+      destruct a.
+      destruct v1.
+      simpl in H.
+      injection H as H.
+      clear H IHg A v1 g.
+      rewrite <- H1 in H0.
+      clear l H1.
+      induction p.
+      contradiction.
+      destruct H0.
+      destruct a.
+      simpl in H.
+      discriminate.
+      destruct v1. 
+      simpl in H.
+      injection H as H.
+      exact H.
+      apply (IHp H).
+      apply (IHg H).
+    - intros.
+      apply inner_in in H1.
+      destruct H1.
+      + assert (v = [Vs B] \/ n = n0).
+        apply (IHder2 v0 n0 H1).
+        destruct H2.
+        assert (u ++ [Vs B] ++ w = [Vs A] \/ n = n0).
+        apply (IHder1 v0 n0).
+        rewrite <- H2.
+        apply inner_in_rev.
+        left.
+        exact H1.
+        destruct H3.
+        rewrite <- H2 in H3.
+        auto.
+        auto.
+        auto.
+      + assert (u ++ [Vs B] ++ w = [Vs A] \/ n = n0).
+        apply (IHder1 v0 n0).
+        apply inner_in_rev.
+        right.
+        exact H1.
+        destruct H2.
+        assert (u = []).
+        destruct u.
+        auto.
+        destruct u.
+        discriminate.
+        discriminate.
+        rewrite H3 in H2.
+        simpl in H2.
+        assert (w = []).
+        destruct w.
+        auto.
+        discriminate.
+        rewrite H3 in H1.
+        rewrite H4 in H1.
+        contradiction.
+        auto.
+  Qed. 
+
+  Lemma clean_start l (p : @phrase Tt (labeled_Vt Vt)):  
+        der (grammar_union l) (V (start Vt)) p ->
+        p = [Vs (V (start Vt))] \/
+        exists g a u v, (u ++ (g, a) :: v) = l /\ der (grammar_union l) (V (lV (length v) a)) p.
+  Proof.
+    intros.
+    remember (V (start Vt)) as st in H.
+    induction H.
+    - left.
+      rewrite Heqst.
+      reflexivity.
+    - right.
+      induction l.
+      contradiction.
+      apply in_app_or in H.
+      destruct H.
+      destruct a.
+      clear IHl.
+      exists g, v, [], l.
+      split.
+      auto.
+      rewrite Heqst in H.
+      destruct H.
+      injection H as H.
+      rewrite <- H.
+      apply vDer.
+      exfalso.
+      induction g.
+      contradiction.
+      destruct H.
+      destruct a.
+      destruct v0.
+      discriminate.
+      auto.
+      assert (H1 := IHl H).
+      clear H IHl.
+      destruct H1 as [g H1].
+      destruct H1 as [a1 H1].
+      destruct H1 as [u1 H1].
+      destruct H1 as [v1 H1].
+      exists g, a1, (a::u1), v1.
+      destruct H1.
+      split.
+      rewrite <- app_comm_cons.
+      apply f_equal with (f := fun l => a::l).
+      auto.
+      apply grammar_extention.
+      auto.
+    - assert (H1 := IHder1 Heqst).
+      clear IHder1.
+      destruct H1.
+      assert (B = V (start Vt) /\ u = [] /\ w = []).
+      {
+        destruct u.
+        simpl in H1.
+        destruct w.
+        injection H1 as H1.
+        auto.
+        discriminate.
+        destruct u.
+        discriminate.
+        discriminate.
+      }
+      clear H1.
+      destruct H2.
+      destruct H2.
+      rewrite H2.
+      rewrite H3.
+      simpl.
+      assert (v ++ [] = v).
+      apply app_nil_r.
+      rewrite H4.
+      apply IHder2.
+      exact H1.
+      destruct H1 as [g H1].
+      destruct H1 as [a H1].
+      destruct H1 as [u0 H1].
+      destruct H1 as [v0 H1].
+      right.
+      exists g, a, u0, v0.
+      destruct H1.
+      split.
+      exact H1.
+      apply (replN H2 H0).    
+  Qed.
+  
+  Definition update_grammar_simpl (n : nat) (g : (@grammar Tt Vt) * Vt):
+    @grammar Tt (labeled_Vt Vt):=
+    match g with
+      (gr, st) => (map (update_rule n) gr)
+    end.
+
+  Fixpoint grammar_union_simpl (l : list ((@grammar Tt Vt) * Vt)):
+    @grammar Tt (labeled_Vt Vt) :=
+    match l with
+    |  [] => []
+    |  (g::t) => update_grammar_simpl (length t) g ++ (grammar_union_simpl t)
+    end.
+
+  Lemma no_start_in_der l n0 v0 (p : @phrase Tt (labeled_Vt Vt)):  
+        der (grammar_union l) (V (lV n0 v0)) p ->
+        In (Vs (V (start Vt))) p -> False.
+  Proof.
+    intro.
+    remember (V (lV n0 v0)) as st.
+    revert n0 v0 Heqst.
+    induction H.
+    - intros.
+      rewrite Heqst in H.
+      destruct H.
+      discriminate.
+      contradiction.
+    - intros.
+      induction l.
+      contradiction.
+      apply in_app_or in H.
+      destruct H.
+      destruct a.
+      simpl in H.
+      destruct H.
+      rewrite Heqst in H.
+      discriminate.
+      induction g.
+      contradiction.
+      simpl in H.
+      destruct H.
+      destruct a.
+      destruct v1.
+      simpl in H.
+      injection H as H.
+      clear IHl IHg Heqst H.
+      rewrite <- H1 in H0.
+      clear H1.
+      induction p.
+      contradiction.
+      destruct H0.
+      destruct a.
+      discriminate.
+      destruct v2.
+      discriminate.
+      exact (IHp H).
+      exact (IHg H).
+      exact (IHl H).
+    - intros.
+      apply inner_in in H1.
+      destruct H1.
+      destruct B.
+      destruct l0.
+      apply (IHder1 n0 v0 Heqst).
+      apply inner_in_rev.
+      auto.
+      apply (IHder2 n v1).
+      reflexivity.
+      exact H1.
+      apply (IHder1 n0 v0 Heqst).
+      apply inner_in_rev.
+      right.
+      exact H1.
+   Qed.   
+
+  Lemma clean_start_rule l a n0 (p : @phrase Tt (labeled_Vt Vt)):  
+        der (grammar_union l) (V (lV n0 a)) p ->
+        der (grammar_union_simpl l) (V (lV n0 a)) p.
+  Proof.
+    intros.
+    remember (V (lV n0 a)) as st.
+    revert n0 a Heqst.
+    induction H.
+    - intros.
+      apply vDer.
+    - intros.
+      apply rDer.
+      induction l.
+      contradiction.
+      apply in_app_or in H.
+      destruct H.
+      destruct a0.
+      clear IHl.
+      apply in_or_app.
+      left.
+      simpl in H.
+      destruct H.
+      rewrite Heqst in H.
+      discriminate.
+      exact H.
+      apply in_or_app.
+      right.
+      apply IHl.
+      exact H.
+    - intros.
+      apply (replN (B := B)).
+      apply (IHder1 n0 a Heqst).
+      destruct B.
+      destruct l0.
+      exfalso.
+      rewrite Heqst in H.
+      apply (no_start_in_der H).
+      apply inner_in_rev.
+      auto.
+      apply (IHder2 n v0).
+      auto.
+  Qed.
+
+  Lemma ext_grammar l v (p : @phrase Tt (labeled_Vt Vt)):
+        der (grammar_union_simpl l) v p ->
+        der (grammar_union l) v p. 
+  Proof.
+    intros.
+    induction H.
+    - intros.
+      apply vDer.
+    - intros.
+      apply rDer.
+      induction l.
+      contradiction.
+      apply in_app_or in H.
+      destruct H.
+      clear IHl.
+      apply in_or_app.
+      left.
+      destruct a.
+      simpl.
+      right.
+      exact H.
+      apply in_or_app.
+      right.
+      apply IHl.
+      exact H.
+    - intros.
+      apply (replN (B := B)).
+      apply (IHder1).
+      apply (IHder2).
+  Qed.
+
+  Lemma no_start_in_ders l n0 v0 (p : @phrase Tt (labeled_Vt Vt)):  
+        der (grammar_union_simpl l) (V (lV n0 v0)) p ->
+        In (Vs (V (start Vt))) p -> False.
+  Proof.
+    intro.
+    apply ext_grammar in H.
+    apply (no_start_in_der H).
+  Qed.
+
+  (*
+  Lemma name3: forall a l g n0 a0 (p : @phrase Tt (labeled_Vt Vt)),
+      In (g, a0) l ->
+      der (grammar_union_simpl l) (V (lV n0 a0)) p ->
+      der (update_grammar_simpl (length l) a) (V (lV n0 a0)) p \/
+      der (grammar_union_simpl l) (V (lV n0 a0)) p.
+  Proof.
+    intros.
+    remember (V (lV n0 a0)) as st.
+    induction H0.
+    left.
+    apply vDer.
+    admit.
+    destruct IHder1.
+    destruct IHder2.
+    - left.
+      apply (replN H1 H2).
+    - destruct B.
+      destruct l0.
+      assert ((u ++ [Vs B] ++ w) = [Vs A] \/ (n = n0)).    
+    
   Qed.
    *)
-  
+  (*
+  der (grammar_union_simpl ((g, a) :: l)) (V (lV n0 a))
+         p 
+   *)
+
+  Lemma cut_head a l n0 v0 p:
+        der (grammar_union_simpl (a :: l)) (V (lV n0 v0)) p ->
+        (length l > n0) ->
+        der (grammar_union_simpl l) (V (lV n0 v0)) p.
+  Proof.
+    intro.
+    simpl in H.
+    intro.
+    apply grammar_cut_l1 with
+        (l1 := update_grammar_simpl (length l) a)
+        (P := fun s => get_n s = S n0).
+    exact H.
+    auto.
+    intros.
+  Qed.
+               
+(*
+   Lemma grammar_cut_l2 : forall (l1 l2 : list rule) (p : @phrase Tt (labeled_Vt Vt)) (v0 : var)
+      (P : var -> Prop), 
+      der (l1 ++ l2) v0 p ->
+      (P v0) ->
+      (forall r pr v1, In (R r pr) (l1 ++ l2) -> (P r) -> In (Vs v1) pr -> P v1) ->
+      (forall r pr, In (R r pr) l2 -> (P r) -> False) ->
+      der l1 v0 p.
+  Proof.
+  *)
   Lemma same_union_bkw : forall (l : list (grammar * Vt)) (w : word),
       grammar_to_language (grammar_union l, start Vt) w ->
       language_list_union (map grammar_to_language l) w.
   Proof.
     intros.
     unfold grammar_to_language in H.
-
-    enough (der_start :
-    forall (l : list (grammar * Vt)) (p : @phrase Tt (labeled_Vt Vt)),
-      der (grammar_union l) (V (start Vt)) p -> p <> [(Vs (V (start Vt)))] ->
-      exists n0 v0, der (grammar_union l) (V (lV n0 v0)) p).
-
-    assert (exists (n0 : nat) (v0 : Vt), der (grammar_union (Tt:=Tt) l) (V (lV n0 v0)) (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)).
-    apply der_start.
-    exact H.
+    assert (H1 := clean_start H).
+    destruct H1.
     admit.
+    destruct H0 as [g H0].
+    destruct H0 as [a H0].
+    destruct H0 as [u H0].
+    destruct H0 as [v H0].
+    clear H.
     destruct H0.
-    destruct H0. 
-    remember (V (start Vt)) as st.
-    remember (to_phrase (Tt:=Tt) (labeled_Vt Vt) w) as p.
-   
-    induction l.
-    - simpl in H.
-      exfalso.
-      assert (p = [Vs st]).
-      apply empty_grammar.
-      apply H.
-      rewrite Heqp in H1.
-      destruct w.
-      simpl in H1.
-      discriminate.
-      simpl in H1.
-      discriminate.
-    - simpl.
-      destruct a. 
-      unfold grammar_to_language.
-      enough (same_union_bkw_0 : forall
-    (g : grammar) (v : Vt)
-    (l : list (grammar * Vt))
-    (n : nat)
-    (p : phrase)
-    (H : der (grammar_union (Tt:=Tt) ((g, v) :: l)) (V (lV n v))
-        (tranform_phrase n p)),
-                 der g (V v) p \/ (der (grammar_union (Tt:=Tt) l) (V (lV n v)) (tranform_phrase n p))).
+    apply clean_start_rule in H0.
+    assert (der (update_grammar_simpl (length v) (g, a)) (V (lV (length v) a))
+         (to_phrase (Tt:=Tt) (labeled_Vt Vt) w)).
+    revert l H H0.
+    induction u.
+    admit.
+    intros.
+    destruct l.
+    discriminate.
+    apply IHu with (l := l).
+    rewrite <- app_comm_cons in H.
+    injection H as H.
+    exact H1.
+    apply 
+    
+    destruct H0.
+    simpl.
+    left.
+    admit.
+    simpl.
+    right.
+    apply IHl.
+    
     
 
   Qed.
