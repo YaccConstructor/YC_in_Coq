@@ -4,14 +4,14 @@ Require Import Coq.Sets.Ensembles.
 Require Import Coq.Sets.Finite_sets.
 
 Section RA_Definition.
-  Record RA {T'' : Type} := {
+  Record RA {T'' : Type} := mkRA {
     Q' : Type;
     T' : Type := T'';
     N' : Type;
     edges' : Ensemble (Q' * Q');
     call' : N' -> Q' * Q';
     edge'symbol' : option (T' + N') -> relation (Q');
-    startN' : N';
+    start' : Q' * Q';
   }.
   
   Context {T'' : Type}.
@@ -52,7 +52,7 @@ Section RA_Definition.
   Definition edge'relation: relation Q := fun x y => In (Q * Q) edges (x, y).
   
   (* Edge -> Symbol *)
-  Definition edge'symbol (s : S): relation (Q) := edge'symbol' ra s.
+  Definition edge'symbol (s : S): relation Q := edge'symbol' ra s.
   
   (* Paths *)
   Variable path'count : nat.
@@ -199,9 +199,18 @@ Section RA_Operations.
   End FSA_Intersection.
   
   Section FSA_Image.
-    Context {newT:Type}.
-    Variable ra : @RA newT.
-    Definition br: Type := N ra * bool * Q ra * Q ra.
-    Inductive fsa_edges'relation (x y : Q ra): Prop := .
+    Context {sT:Type}.
+    Variable ra : @RA sT.
+    Inductive newT :=
+    | term (t : sT)
+    | bbr (n : N ra) (ctx : Q ra * Q ra)
+    | ebr (n : N ra) (ctx : Q ra * Q ra).
+    Inductive Empty : Type :=.
+    Inductive fsa_relation_image: option (newT + Empty) -> relation (Q ra) :=
+    | fer_eps_edge: forall x y:Q ra, edge'symbol ra None x y -> fsa_relation_image None x y
+    | fer_ter_edge (t: T ra): forall x y : Q ra, edge'symbol ra (Some (inl t)) x y -> fsa_relation_image (Some (inl (term t))) x y
+    | begin_br (n : N ra): forall x y : Q ra, edge'symbol ra (Some (inr n)) x y -> fsa_relation_image (Some (inl (bbr n (x, y)))) x (fst (call ra n))
+    | end_br (n : N ra): forall x y : Q ra, edge'symbol ra (Some (inr n)) x y -> fsa_relation_image (Some (inl (ebr n (x, y)))) (snd (call ra n)) y.
+    Definition fsa_image : @RA newT := mkRA newT (Q ra) Empty (edges ra) (fun _ => start' ra) fsa_relation_image (start' ra).
   End FSA_Image.
 End RA_Operations.
