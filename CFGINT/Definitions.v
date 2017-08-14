@@ -11,7 +11,8 @@ Section RA_Definition.
     edges' : Ensemble (Q' * Q');
     subpath' : relation (Q' * Q');
     call' : N' -> Q' * Q';
-    edge'symbol' : forall e : Q' * Q', In (Q' * Q') edges' e -> option (T' + N');
+    edge'symbol' : option (T' + N') -> relation (Q');
+    startN' : N';
   }.
   
   Variable ra : RA.
@@ -50,7 +51,7 @@ Section RA_Definition.
   Definition edge'relation: relation Q := fun x y => In (Q * Q) edges (x, y).
   
   (* Edge -> Symbol *)
-  Definition edge'symbol : forall e : Q * Q, In (Q * Q) edges e -> S := edge'symbol' ra.
+  Definition edge'symbol (s : S): relation (Q) := edge'symbol' ra s.
   
   (* Paths *)
   Variable path'count : nat.
@@ -58,15 +59,40 @@ Section RA_Definition.
   Definition paths : Ensemble (Q * Q) := fun xy => paths'relation (fst xy) (snd xy).
   Axiom paths_is_state_pair : forall x y : Q, In (Q * Q) paths (x, y) -> In Q states x /\ In Q states y.
   Axiom paths_is_finite : cardinal (Q * Q) paths path'count.
+  Lemma unpair : forall A B : Type, forall x : A * B, (fst x, snd x) = x.
+  Proof.
+    intros.
+    elim x.
+    intros.
+    unfold fst.
+    unfold snd.
+    auto.
+  Qed.
+  Lemma unpair_call : forall A B : Type, forall f : A * B -> Prop, forall x : A * B, f x -> f (fst x, snd x).
+  Proof.
+    unfold fst.
+    unfold snd.
+    intro.
+    intro.
+    intro.
+    intro.
+    elim x.
+    intros.
+    exact H.
+  Qed.
   Lemma edges_is_path'subpath : Included (Q * Q) edges paths.
   Proof.
-    intro.
-    intro.
+    unfold Included.
+    unfold In.
     unfold paths.
     unfold paths'relation.
+    intros.
     unfold edge'relation.
     apply rt_step.
-  Admitted.
+    unfold In.
+    apply unpair_call.
+    exact H.
+  Qed.
   Lemma paths'relation_is_reflexive : reflexive Q paths'relation.
   Proof.
     unfold reflexive.
@@ -85,23 +111,61 @@ Section RA_Definition.
   Qed.
   
   (* Subpath relation *)
-  Definition subpath : relation (Q * Q) := subpath' ra.
-  Axiom subpath_is_reflexive : reflexive (Q * Q) subpath.
-  Axiom subpath_is_transitive : transitive (Q * Q) subpath.
-  Axiom subpath_id : forall x : Q * Q, subpath x x.
-  Axiom subpath_edges : forall x y : Q, In (Q * Q) edges (x, y) -> subpath (x, y) (x, y).
-  Axiom subpath_concat : forall x y z : Q, subpath (x, y) (x, y) /\ subpath (y, z) (y, z) -> subpath (x, y) (x, z) /\ subpath (y, z) (x, z).
+  Inductive subpath: relation (Q * Q) :=
+  | edge: forall (ab: Q * Q), In (Q * Q) edges ab -> subpath ab ab
+  | refl: forall (ab: Q * Q), subpath ab ab
+  | trans: forall x y z : Q * Q, subpath x y -> subpath y z -> subpath x z
+  | concat_l: forall (ab: Q * Q), forall x y z : Q, subpath ab (x, y) /\ subpath (y, z) (y, z) -> subpath ab (x, z)
+  | concat_r: forall (ab: Q * Q), forall x y z : Q, subpath (x, y) (x, y) /\ subpath ab (y, z) -> subpath ab (x, z).
+  
+  Theorem subpath_is_reflexive : reflexive (Q * Q) subpath.
+  Proof.
+    intro.
+    apply refl.
+  Qed.
+  Theorem subpath_is_transitive : transitive (Q * Q) subpath.
+  Proof.
+    intro.
+    intro.
+    intro.
+    apply trans.
+  Qed.
+  Theorem subpath_edges : forall x y : Q, In (Q * Q) edges (x, y) -> subpath (x, y) (x, y).
+  Proof.
+    intros.
+    apply edge.
+    exact H.
+  Qed.
+  Theorem subpath_concat_l : forall a b x y z : Q, subpath (a, b) (x, y) /\ subpath (y, z) (y, z) -> subpath (a, b) (x, z).
+  Proof.
+    intro.
+    intro.
+    intro.
+    intro.
+    intro.
+    apply concat_l.
+  Qed.
+  Theorem subpath_concat_r : forall a b x y z : Q, subpath (x, y) (x, y) /\ subpath (a, b) (y, z) -> subpath (a, b) (x, z).
+  Proof.
+    intro.
+    intro.
+    intro.
+    intro.
+    intro.
+    apply concat_r.
+  Qed.
   
   (* Path -> [Symbol] *)
-  Definition spath'symbols : forall e : Q * Q, In (Q * Q) edges e -> Ensemble S := fun e i => Singleton S (edge'symbol e i).
-  Variable path'symbols : forall e : Q * Q, In (Q * Q) paths e -> Ensemble S.
-  Axiom spath_is_path'subpath : forall e i j, Included S (path'symbols e i) (spath'symbols e j).
-  Axiom subpath'symbols : forall x y i j, subpath x y -> Included S (path'symbols x i) (path'symbols y j).
-  
+  Definition path'symbols (s: S): relation Q := fun z w : Q => exists x y : Q, edge'symbol s x y /\ subpath (x, y) (z, w).
+
   (* Calls *)
-  Definition calls : relation N := fun n m : N => exists q, subpath (call n) q /\ forall i : In (Q * Q) paths q, In S (path'symbols q i) (Some (inr m)).
+  Definition calls : relation N := fun n m : N => exists x y, subpath (call n) (x, y) /\ path'symbols (Some (inr m)) x y.
   Definition closcalls := clos_trans N calls.
   Definition is_nonrecursive := forall x, ~ closcalls x x.
+  Definition is_fsa n := forall x y, ~ edge'symbol (Some (inr n)) x y.
+  Lemma fsa_is_nr: (forall n, is_fsa n) -> is_nonrecursive.
+  Proof.
+  Admitted.
 End RA_Definition.
 
 Section Input_Definition.
@@ -123,3 +187,6 @@ Section GLL_Definition.
     sppf : SPPFPos;
   }.
 End GLL_Definition.
+
+Section RA_Operations.
+End RA_Operations.
