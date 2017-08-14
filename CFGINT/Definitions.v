@@ -4,18 +4,19 @@ Require Import Coq.Sets.Ensembles.
 Require Import Coq.Sets.Finite_sets.
 
 Section RA_Definition.
-  Record RA := {
+  Record RA {T'' : Type} := {
     Q' : Type;
-    T' : Type;
+    T' : Type := T'';
     N' : Type;
     edges' : Ensemble (Q' * Q');
-    subpath' : relation (Q' * Q');
     call' : N' -> Q' * Q';
     edge'symbol' : option (T' + N') -> relation (Q');
     startN' : N';
   }.
   
-  Variable ra : RA.
+  Context {T'' : Type}.
+  
+  Variable ra : @RA T''.
 
   (* State type *)
   Local Definition Q : Type := Q' ra.
@@ -162,10 +163,12 @@ Section RA_Definition.
   Definition calls : relation N := fun n m : N => exists x y, subpath (call n) (x, y) /\ path'symbols (Some (inr m)) x y.
   Definition closcalls := clos_trans N calls.
   Definition is_nonrecursive := forall x, ~ closcalls x x.
-  Definition is_fsa n := forall x y, ~ edge'symbol (Some (inr n)) x y.
-  Lemma fsa_is_nr: (forall n, is_fsa n) -> is_nonrecursive.
-  Proof.
-  Admitted.
+  
+  Definition fsa_path'symbol (t: option T) :=
+    match t with
+    | None => path'symbols None
+    | Some x => path'symbols (Some (inl x))
+    end.
 End RA_Definition.
 
 Section Input_Definition.
@@ -189,4 +192,16 @@ Section GLL_Definition.
 End GLL_Definition.
 
 Section RA_Operations.
+  Section FSA_Intersection.
+    Context {newT:Type}.
+    Variable ra1 ra2 : @RA newT.
+    Definition fsa_paths_intersection (t: option newT) (x1: Q ra1) (x2: Q ra2) (y1: Q ra1) (y2: Q ra2) := fsa_path'symbol ra1 t x1 y1 /\ fsa_path'symbol ra2 t x2 y2.
+  End FSA_Intersection.
+  
+  Section FSA_Image.
+    Context {newT:Type}.
+    Variable ra : @RA newT.
+    Definition br: Type := N ra * bool * Q ra * Q ra.
+    Inductive fsa_edges'relation (x y : Q ra): Prop := .
+  End FSA_Image.
 End RA_Operations.
