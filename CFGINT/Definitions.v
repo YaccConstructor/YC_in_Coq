@@ -171,6 +171,11 @@ Section RA_Definition.
     end.
 End RA_Definition.
 
+Section Nonrecursive_RA.
+  Inductive nrRA: RA :=
+  | nr: forall (ra: RA), is_nonrecursive ra -> nrRA ra.
+End Nonrecursive_RA.
+
 Section Input_Definition.
   Variable Char : Type.
   Record LinearInput := {
