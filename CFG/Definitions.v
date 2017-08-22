@@ -36,9 +36,11 @@ Module Definitions.
     Context {Tt_eqdec: eq_dec Tt}.
     Context {Vt_eqdec: eq_dec Vt}.
     
+    Global Instance ter_eq_dec : eq_dec (@ter Tt).
+    Proof. intros A B. unfold dec. repeat decide equality. apply Tt_eqdec. Defined.
+    
     Global Instance var_eq_dec : eq_dec (@var Vt).
-    Proof.
-      intros A B. unfold dec. repeat decide equality. apply Vt_eqdec. Defined. 
+    Proof. intros A B. unfold dec. repeat decide equality. apply Vt_eqdec. Defined. 
 
     Global Instance rule_eq_dec : eq_dec (@rule Tt Vt).
     Proof.
