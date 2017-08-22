@@ -300,12 +300,14 @@ Module GLLMain.
  
     End Pop.
 
+    Definition is_nth_equal_to (T: eqType) (string: seq T) (n: nat) (c: T) :=
+      if nth_error string n is Some s then c == s else false.
+    
     Definition term_slot (state: State) (D: Descriptor) (word: list ter) (t: ter): State :=
       let '(L,cu,ci) := D in
-      match nth_error word ci with
-        | None => state
-        | Some c => if c == t then add state (next_slot L, cu, ci + 1) else state
-      end.
+      if is_nth_equal_to word ci t then
+        add state (next_slot L, cu, ci + 1)
+      else state.
     
     
     Definition nonterm_slot (state: State) (D: Descriptor) (nt: var): State :=
@@ -326,7 +328,7 @@ Module GLLMain.
 
     Fixpoint parse_iter
              (n: nat)
-             (st: GSS_Node)
+             (st: var)
              (string: list ter)
              (state: State)
     : option bool :=
@@ -334,17 +336,17 @@ Module GLLMain.
       match n, R with
         | 0, _ => None
         | S n, [] => Some (
-                        has (fun d =>
-                               let '(Sl _ (_,ph) ,node,pos) := d in
-                               (node == st) && (length string == pos) && (ph == [::]))
-                            U)
+                        has (fun p =>
+                               let '(var, s, f) := p in
+                               (st == var) && (s == 0) && (length string == f))
+                            P)
         | S n, d::R => parse_iter n st string (do_very_important_stuff string (R,P,U,GSS) d)
       end.
 
     Definition parse_gll st n string :=
       let start_node := (st, 0) in 
       parse_iter
-        n start_node string
+        n st string
             (add_all_descriptors ([::],nil,nil,([start_node],nil)) st start_node 0).
             
     
@@ -372,111 +374,164 @@ Module GLLMain.
 
   Section Examples.
 
-    Section Grammar_Simple.
+    Section SimpleGrammar.
 
       Let a := T 1.
       Let A := V 1.
             
       Let G: grammar :=
         [
-          R A [Ts a; Ts a; Ts a]
+          R A [Ts a; Ts a; Ts a];
+          R A [Ts a; Ts a; Ts a; Ts a]
         ].
 
-
-      Example test1:
-        forall n,
-          n >= 10 -> 
-          parse_gll G A n [a;a;a] = Some true.
+      Goal forall n, n >= 10 -> parse_gll G A n [a;a] = Some false.
       Proof.      
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-          by done.
-      Qed.
-
-      Example test2:
-        forall n,
-          n >= 10 ->
-          parse_gll G A n [a;a;a;a] = Some false.
-      Proof.      
-        intros.
-        unfold parse_gll, add_all_descriptors; simpl.     
         repeat (destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1; try done).
       Qed.
       
-
-      Example test3:
-        forall n,
-          n >= 10 ->
-          parse_gll G A n [a;a] = Some false.
+      Goal forall n, n >= 10 -> parse_gll G A n [a;a;a;a] = Some true.
       Proof.      
         intros.
+        unfold parse_gll, add_all_descriptors; simpl.
         repeat (destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1; try done).
       Qed.
       
-      
-    End Grammar_Simple.
+      Goal forall n, n >= 10 -> parse_gll G A n [a;a;a;a;a;a;a] = Some false.
+      Proof.      
+        intros.
+        unfold parse_gll, add_all_descriptors; simpl.
+        repeat (destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1; try done).
+      Qed.
+
+    End SimpleGrammar.
     
-    Section Grammar_111.
+    Section ABCGrammar.
  
       Let a := T 1.
+      Let b := T 2.
+      
       Let A := V 1.
+      Let B := V 2.
+      Let C := V 3.
             
       Let G: grammar :=
         [
-          R A [Vs A; Ts a; Ts a];
-          R A [Ts a]
+          R A [Vs B; Vs B; Vs B];
+          R B [Vs C; Vs C];
+          R C [Ts a];
+          R C [Ts b]
         ].
 
-
-      Example test1:
-        forall n,
-          n >= 10 -> 
-          parse_gll G A n [a;a;a].
+      Goal forall n, n >= 100 -> parse_gll G A n [a;a;a;a;a;a] = Some true.
       Proof.      
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
-        destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1.
+
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
           by done.
       Qed.
 
-      Example test2:
-        forall n,
-          n >= 10 ->
-          parse_gll G A n [a;a;a;a] = Some false.
-      Proof.      
+    End ABCGrammar.
+
+    Section BracketsGrammar.
+ 
+      Let l := T 1.
+      Let r := T 2.
+      Let S := V 1.
+            
+      Let G: grammar :=
+        [
+          R S [Vs S; Vs S];
+          R S [Ts l; Vs S; Ts r];
+          R S [Ts l; Ts r]
+        ].
+
+      Goal forall n, n >= 100 -> parse_gll G S n [l;l;r;l;r;r] = Some true.
+      Proof. 
         intros.
-        unfold parse_gll, add_all_descriptors; simpl.     
-        repeat (destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1; try done).
+        unfold parse_gll, add_all_descriptors; simpl.
+        
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+          by done.
       Qed.
       
+    End BracketsGrammar.
 
-      Example test3:
-        forall n,
-          n >= 10 ->
-          parse_gll G A n [a;a] = Some false.
-      Proof.      
-        intros.
-        repeat (destruct n; simpl; [inversion H | ]; rewrite ?add0n ?addn1; try done).
-      Qed.
-      
-      
-    End Grammar_111.
-
+    
     (* TODO: name *)
     Section Grammar_name.
 
@@ -492,119 +547,14 @@ Module GLLMain.
         ].
 
 
-      Example test2:
-        forall n,
-          n >= 200 ->
-          parse_gll G A n [a;a;a;a] = Some true.
+      Goal forall n, n >= 200 -> parse_gll G A n [a;a;a;a] = Some true.
       Proof.      
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
-       
-        
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-        destruct n; [admit | ]; simpl; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
-      Qed.
 
-    End Grammar_111.
+      Admitted.
+
+    End Grammar_name.
     
     Section Grammar_Fig1_Izmaylova.
 
@@ -617,39 +567,37 @@ Module GLLMain.
         [
           R A [Ts a; Vs A; Ts b];
           R A [Ts a; Vs A; Ts c];
-          R A [Ts a]
+          R A [Ts a] 
         ].
 
-
-      Example test:
-        forall n,
-          parse_iter
-            G n (A, 0) [a; a; c]
-            (add_all_descriptors G ([::],nil,nil,([(A, 0)],nil)) A (A, 0) 0) = Some true.
+      Goal forall n, n >= 100 -> parse_gll G A n [a;a;c] = Some true.
       Proof.      
         intros.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-        destruct n; simpl; [admit | ]; rewrite /getNodeP ?add0n ?addn1.
-      Admitted.
+        unfold parse_gll, add_all_descriptors; simpl.
 
-    End Grammar_111.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl. 
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+          by done.
+      Qed.
+      
+    End Grammar_Fig1_Izmaylova.
     
   End Examples.
   
