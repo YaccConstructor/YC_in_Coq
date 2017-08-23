@@ -17,7 +17,7 @@ Module GLLMain.
     Variable char: finType.
 
     (** Type of input sequences ***)
-    Definition word := misc.word char.
+    (* Definition word := misc.word char. *)
 
     (** Deterministic finite automata. **)
     Section DFA.
@@ -41,7 +41,7 @@ Module GLLMain.
           to be the list of states x_1 .. x_|w|
           traversed when following the edges labeled
           w_1 .. w_|w| starting in x. **)
-        Fixpoint dfa_run' (x: A) (w: word) : seq A :=
+(*        Fixpoint dfa_run' (x: A) (w: word) : seq A :=
           match w with
             | [::] => [::]
             | a::w => (dfa_step A x a) ::dfa_run' (dfa_step A x a) w
@@ -73,7 +73,7 @@ Module GLLMain.
         Proof. elim: w x n => [|a w IHw] x n //.
                case: n => [|n] //=. by rewrite IHw.
         Qed.
-
+ 
         (** rcons and cat lemmas. **)
         Lemma dfa_run'_cat x w1 w2 :
           dfa_run' x (w1 ++ w2) = dfa_run' x w1 ++ dfa_run' (last x (dfa_run' x w1)) w2.
@@ -84,7 +84,7 @@ Module GLLMain.
 
         (* slightly altered acceptance statement. *)
         Lemma dfa_run_accept x w: last x (dfa_run' x w) \in dfa_fin A = (w \in dfa_accept x).
-        Proof. elim: w x => [|a w IHw] x //. by rewrite /= IHw. Qed.
+        Proof. elim: w x => [|a w IHw] x //. by rewrite /= IHw. Qed. *)
 
       End Acceptance.
 
