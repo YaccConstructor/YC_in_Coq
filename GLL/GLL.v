@@ -2,6 +2,7 @@ Require Import List.
 
 Add LoadPath "~/Git/YC_in_Coq/". 
 Require Import CFG.Definitions CFG.Derivation INT.Intersection.
+(* Require Import AUT.misc. *)
 
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq fintype bigop.
 
@@ -9,16 +10,95 @@ Module GLLMain.
   
   Import Base Definitions Derivation Intersection.
 
+  (* TODO: del this *)
+  (* TODO: import from AUT *)
+  Section FA.
+
+    Variable char: finType.
+
+    (** Type of input sequences ***)
+    Definition word := misc.word char.
+
+    (** Deterministic finite automata. **)
+    Section DFA.
+
+      (** The type of deterministic finite automata. ***)
+      Record dfa : Type :=
+        {
+          dfa_state :> finType;
+          dfa_s: dfa_state;
+          dfa_fin: pred dfa_state;
+          dfa_step: dfa_state -> char -> dfa_state
+        }.
+
+      (** Acceptance on DFAs **)
+      Section Acceptance.
+
+        (** Assume some automaton **)
+        Variable A: dfa.
+
+        (** We define a run of w on the automaton A
+          to be the list of states x_1 .. x_|w|
+          traversed when following the edges labeled
+          w_1 .. w_|w| starting in x. **)
+        Fixpoint dfa_run' (x: A) (w: word) : seq A :=
+          match w with
+            | [::] => [::]
+            | a::w => (dfa_step A x a) ::dfa_run' (dfa_step A x a) w
+          end.
+
+        (** A simplifying function for a "aux2" run
+          (i.e. starting at s). **)
+        Definition dfa_run := [fun w => dfa_run' (dfa_s A) w].
+
+        (** Acceptance of w in x is defined as
+          finality of the last state of a run of w on A
+          starting in x. **)
+        Fixpoint dfa_accept x w :=
+          match w with
+            | [::] => dfa_fin A x
+            | a::w => dfa_accept (dfa_step A x a) w
+          end.
+
+        Lemma dfa_accept_cons x a w:
+          a::w \in dfa_accept x = (w \in dfa_accept (dfa_step A x a)).
+        Proof. by rewrite -simpl_predE /=. Qed.
+
+        (** We define the language of the deterministic
+   automaton, i.e. acceptance in the starting state. **)
+        Definition dfa_lang := [pred w | dfa_accept (dfa_s A) w].
+
+        (** take lemma. **)
+        Lemma dfa_run'_take x w n: take n (dfa_run' x w) = dfa_run' x (take n w).
+        Proof. elim: w x n => [|a w IHw] x n //.
+               case: n => [|n] //=. by rewrite IHw.
+        Qed.
+
+        (** rcons and cat lemmas. **)
+        Lemma dfa_run'_cat x w1 w2 :
+          dfa_run' x (w1 ++ w2) = dfa_run' x w1 ++ dfa_run' (last x (dfa_run' x w1)) w2.
+        Proof. elim: w1 w2 x => [|a w1 IHw1] w2 x //.
+               simpl. by rewrite IHw1.
+        Qed.
+
+
+        (* slightly altered acceptance statement. *)
+        Lemma dfa_run_accept x w: last x (dfa_run' x w) \in dfa_fin A = (w \in dfa_accept x).
+        Proof. elim: w x => [|a w IHw] x //. by rewrite /= IHw. Qed.
+
+      End Acceptance.
+
+    End DFA.
+    
+  End FA.
+
   Section Definitions.
 
     Context {Tt Vt: eqType}.
 
-    
-    (* TODO: comment *)
     Inductive Grammar_Slot: Type := Sl: @var Vt -> @phrase Tt Vt * @phrase Tt Vt -> Grammar_Slot.
     Notation "x ::= y ∙ z" := (Sl x (y, z)) (at level 95, no associativity).
     
-
     Definition to_slot rule :=
       let '(R v rhs) := rule in Sl v (nil, rhs).
 
@@ -191,8 +271,8 @@ Module GLLMain.
         Let state := (R,P,U,GSS).
 
         
-        Hypothesis H_R_is_a_seq: uniq R.
-        Hypothesis H_U_is_a_seq: uniq U.
+        Hypothesis H_R_is_a_set: uniq R.
+        Hypothesis H_U_is_a_set: uniq U.
 
         Lemma remains_uniq:
           forall d,
@@ -299,6 +379,7 @@ Module GLLMain.
           state.
  
     End Pop.
+    
 
     Definition is_nth_equal_to (T: eqType) (string: seq T) (n: nat) (c: T) :=
       if nth_error string n is Some s then c == s else false.
