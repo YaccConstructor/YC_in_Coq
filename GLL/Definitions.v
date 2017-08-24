@@ -152,49 +152,62 @@ Section RA.
   End CanonicalStructures.
 
   Section Definitions.
-    
 
-    Record ra :=
+    (* TODO: add epsilon edge *)
+
+    Record ra: Type :=
       mkRA {
           ra_state :> finType;
           ra_nonterm :> finType;
           ra_term :> finType;
           
-          ra_s: ra_state;
+          ra_s: ra_state (* TODO???: + ra_nonterm *);
           ra_f: pred ra_state;
 
-          ra_step: ra_state * ((* eps + *) ra_term + ra_nonterm) -> pred ra_state
+          ra_step: ra_state * ((*TODO: eps + *) ra_term + ra_nonterm) -> pred ra_state
         }.
 
+    (* Acceptance on RAs *)
+    Section Acceptance.
+
+      (* Assume some automaton *)
+      Variable A: ra.
+      
+      (* TODO *)
+      Fixpoint ra_accept (x: @ra_state A) (w: seq (@ra_term A)) := false.
+      
+      (* TODO *)
+      Definition ra_lang := [pred w | ra_accept (ra_s A) w].
+
+    End Acceptance.
+
+    (* Trivial example *)
     Section Examples.
-
-
-
-      Variable T: finType.
       
-      Canonical terFin := Eval hnf in [finType of (@ter T)].
-      
-      Let r := @mkRA terFin .
-      
+      Variable States V T: finType.
+      Let ters := Eval hnf in [finType of (@ter T)].
+      Let vars := Eval hnf in [finType of (@var V)].
 
+      Variable t1: T.
+      Let ter_t1: ters := Definitions.T t1.
+      
+      Variable (s0 s2 s3 s4: States) (s1: vars) (l r: ters).
+
+      Let ra :=
+        @mkRA
+          States vars ters
+          s0 (fun _ => true)
+          (fun pair => let '(st, sym) := pair in (fun s => st == s)). 
+
+      Goal ~~ ra_lang ra [::l].
+      Proof.
+        apply/negP; intros C.
+        unfold ra_lang in C. simpl in *.
+          by done.
+      Qed.
       
     End Examples.
-      
-    (* TODO: comment *)
-    Record RA :=
-      mkRA {
-          Q' : Type;
-          T' : Type := T;
-          N' : Type;
-          edges' : Ensemble (Q' * Q');
 
-          call' : N' -> Q' * Q';
-          edge'symbol' : option (T' + N') -> relation (Q');
-          start' : Q' * Q';
-        }.
-    
-    (* TODO: def of Acceptance *)
-    
   End Definitions.
 
   (* TODO: fix ⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓*)
