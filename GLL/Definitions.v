@@ -158,13 +158,12 @@ Section RA.
     Record ra: Type :=
       mkRA {
           ra_state :> finType;
-          ra_nonterm :> finType;
           ra_term :> finType;
           
-          ra_s: ra_state (* TODO???: + ra_nonterm *);
+          ra_s: ra_state;
           ra_f: pred ra_state;
 
-          ra_step: ra_state * ((*TODO: eps + *) ra_term + ra_nonterm) -> pred ra_state
+          ra_step: ra_state * ((*TODO: eps + *) ra_term + ra_state) -> pred ra_state
         }.
 
     (* Acceptance on RAs *)
@@ -172,40 +171,91 @@ Section RA.
 
       (* Assume some automaton *)
       Variable A: ra.
-      
-      (* TODO *)
-      Fixpoint ra_accept (x: @ra_state A) (w: seq (@ra_term A)) := false.
-      
-      (* TODO *)
-      Definition ra_lang := [pred w | ra_accept (ra_s A) w].
+
+      Inductive Accept: _ -> _ -> Prop :=
+      | Emp : Accept [::] [::]
+      | Fin : forall w s sl, ra_f s -> Accept w sl -> Accept w (s::sl)
+      | Ter: forall a w (s s1: ra_state A) sl, ra_step (s, (inl a)) s1 -> Accept w (s1::sl) -> Accept (a::w) (s::sl) 
+      | Non: forall w (s s1 s2: ra_state A) sl, ra_step (s, (inr s1)) s2 -> Accept w (s1::s2::sl) -> Accept w (s::sl).
+
+      Definition ra_lang w := Accept w [:: ra_s A].  
 
     End Acceptance.
 
-    (* Trivial example *)
     Section Examples.
-      
-      Variable States V T: finType.
-      Let ters := Eval hnf in [finType of (@ter T)].
-      Let vars := Eval hnf in [finType of (@var V)].
+     
+      Variable States T: finType.
+      Let Ters := Eval hnf in [finType of (@ter T)].
 
       Variable t1: T.
-      Let ter_t1: ters := Definitions.T t1.
-      
-      Variable (s0 s2 s3 s4: States) (s1: vars) (l r: ters).
+      Let ter_t1: Ters := Definitions.T t1.
 
+     
+      Variable (s0 s1 s2 s3: States) (a b: Ters).
+
+      (* Important! *)
+      (* TODO: Should we use finSet? *)
+      Hypothesis Neq: s0 == s1 = false /\ s0 == s2 = false /\ s0 == s3 = false /\
+                      s1 == s2 = false /\ s1 == s3 = false /\
+                      s2 == s3 = false.
+
+(*
+        ⊳0          1
+         ↓         ↙↓
+         ↓       ↙  ↓
+       1 ↓   a ↙    ↓ 1
+         ↓   ↙      ↓
+         ↓ ↙        ↓
+        ►3  ← ← ← ← 2        
+               b               
+*)
+   
+      
       Let ra :=
         @mkRA
-          States vars ters
-          s0 (fun _ => true)
-          (fun pair => let '(st, sym) := pair in (fun s => st == s)). 
+          States Ters
+          s0 (fun st => st == s3)
+          (fun pair =>
+             let '(st, sym) := pair in
+             if (st == s0) && (sym == inr s1) then (fun s => s == s3)
+             else
+               if (st == s1) && (sym == inr s1) then (fun s => s == s2)
+               else
+                 if (st == s1) && (sym == inl a) then (fun s => s == s3)
+                 else
+                   if (st == s2) && (sym == inl b) then (fun s => s == s3)
+                   else (fun _ => false)).
 
-      Goal ~~ ra_lang ra [::l].
+      Goal @ra_lang ra [::a;b;b] .
       Proof.
-        apply/negP; intros C.
-        unfold ra_lang in C. simpl in *.
-          by done.
+        destruct Neq as [H1 [H2 [H3 [H4 [H5 H6]]]]]. 
+        unfold ra_lang.
+        apply Non with (s1 := s1) (s2 := s3).
+        { by simpl; rewrite !eq_refl Bool.andb_true_l. }
+        
+        apply Non with (s1 := s1) (s2 := s2).
+        { by simpl; rewrite !eq_refl eq_sym H1; simpl. }
+
+        apply Non with (s1 := s1) (s2 := s2).
+        { by simpl; rewrite !eq_refl eq_sym H1; simpl. }
+
+        apply Ter with (s1 := s3); simpl.
+        { by simpl; rewrite !eq_refl eq_sym H1; simpl. }
+
+        apply Fin. by simpl.  
+        apply Ter with (s1 := s3); simpl.
+        {  simpl; rewrite !eq_refl eq_sym H2; simpl.
+             by rewrite eq_sym H4; simpl. }
+
+        apply Fin. by simpl.  
+        apply Ter with (s1 := s3); simpl.
+        {  simpl; rewrite !eq_refl eq_sym H2; simpl.
+             by rewrite eq_sym H4; simpl. }        
+        apply Fin. by simpl.  
+        apply Fin. by simpl.  
+        apply Emp.
       Qed.
-      
+        
     End Examples.
 
   End Definitions.
