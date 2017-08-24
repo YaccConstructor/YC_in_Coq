@@ -6,13 +6,153 @@ Require Import Coq.Sets.Finite_sets.
 Add LoadPath "~/Git/YC_in_Coq/". 
 Require Import CFG.Definitions CFG.Derivation INT.Intersection.
 Require Import GLL.GLL.
-From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq bigop choice fintype fingraph finfun finset.
+From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq bigop fintype fingraph finfun finset choice.
 
 Section RA.
   
   Import Definitions.
-         
+
+  (* TODO: new file? *)
+  Section CanonicalStructures.
+    
+    Section CanonicalStructureTer.
+      
+      Section EqTer.
+        
+        Variable T: eqType.
+        
+        Fixpoint eqter (t1 t2: @ter T) :=
+          match t1, t2 with
+            | Definitions.T x1, Definitions.T x2 => x1 == x2
+          end.
+        
+        Lemma eqterP: Equality.axiom eqter.
+        Proof.
+          move => t1 t2; apply: (iffP idP) => [| <-]; last by elim: t1 => //= t ->.
+          intros; destruct t1, t2.
+            by inversion H as [H']; move: H' => /eqP H'; subst.
+        Defined. 
+
+        Canonical ter_eqMixin := Eval hnf in EqMixin eqterP.
+        Canonical ter_eqType := Eval hnf in EqType ter ter_eqMixin.
+
+      End EqTer. 
+      
+      Section ChoiceTypeTer.
+
+        Variable T: choiceType.
+        
+        Definition to_ter (x: T) := Definitions.T x.
+        Definition from_ter t: T := match t with Definitions.T x => x end.
+        
+        Lemma hz_of_terK : cancel from_ter to_ter.
+        Proof.
+            by intros t; destruct t.
+        Qed.
+        
+        Definition ter_choiceMixin := CanChoiceMixin hz_of_terK.
+        Canonical ter_choiceType := Eval hnf in ChoiceType ter ter_choiceMixin.
+
+      End ChoiceTypeTer.
+
+      Section CountTypeTer.
+
+        Variable T: countType.
+        
+        Definition ter_countMixin := CanCountMixin (@hz_of_terK T).
+        Canonical ter_countType := Eval hnf in CountType ter ter_countMixin.
+        
+      End CountTypeTer.
+
+      Section FinTypeTer.
+        
+        Variable T: finType.
+        
+        Definition ter_enum := map (@Definitions.T _) (Finite.enum T).
+        
+        Lemma ter_enumP: Finite.axiom ter_enum.
+        Proof.
+          intros x; destruct x as [t].
+            by rewrite //= count_map enumP.
+        Qed.
+        
+        Definition ter_finMixin := FinMixin ter_enumP.
+        Canonical ter_finType := Eval hnf in FinType ter ter_finMixin.
+        
+      End FinTypeTer.
+
+    End CanonicalStructureTer.
+
+    Section CanonicalStructureVar.
+
+      Section EqVar.
+        
+        Variable T: eqType.
+        
+        Fixpoint eqvar (v1 v2: @var T) :=
+          match v1, v2 with
+            | Definitions.V x1, Definitions.V x2 => x1 == x2
+          end.
+        
+        Lemma eqvarP: Equality.axiom eqvar.
+        Proof.
+          move => v1 v2; apply: (iffP idP) => [| <-]; last by elim: v1 => //= t ->.
+          intros; destruct v1, v2.
+            by inversion H as [H']; move: H' => /eqP H'; subst.
+        Defined. 
+
+        Canonical var_eqMixin := Eval hnf in EqMixin eqvarP.
+        Canonical var_eqType := Eval hnf in EqType var var_eqMixin.
+
+      End EqVar. 
+      
+      Section ChoiceTypeVar.
+
+        Variable T: choiceType.
+        
+        Definition to_var (x: T) := Definitions.V x.
+        Definition from_var v: T := match v with Definitions.V x => x end.
+        
+        Lemma hz_of_varK : cancel from_var to_var.
+        Proof. by intros t; destruct t. Qed.
+        
+        Definition var_choiceMixin := CanChoiceMixin hz_of_varK.
+        Canonical var_choiceType := Eval hnf in ChoiceType var var_choiceMixin.
+
+      End ChoiceTypeVar.
+
+      Section CountTypeVar.
+
+        Variable T: countType.
+        
+        Definition var_countMixin := CanCountMixin (@hz_of_varK T).
+        Canonical var_countType := Eval hnf in CountType var var_countMixin.
+        
+      End CountTypeVar.
+
+      Section FinTypeVar.
+        
+        Variable T: finType.
+        
+        Definition var_enum := map (@Definitions.V _) (Finite.enum T).
+        
+        Lemma var_enumP: Finite.axiom var_enum.
+        Proof.
+          intros x; destruct x as [t].
+            by rewrite //= count_map enumP.
+        Qed.
+        
+        Definition var_finMixin := FinMixin var_enumP.
+        Canonical var_finType := Eval hnf in FinType var var_finMixin.
+        
+      End FinTypeVar.      
+
+    End CanonicalStructureVar.
+
+  End CanonicalStructures.
+
   Section Definitions.
+    
 
     Record ra :=
       mkRA {
@@ -28,77 +168,13 @@ Section RA.
 
     Section Examples.
 
-      (* TODO: del *)
-      Section EqTer.
-        
-        Variable Tt: eqType.
-        
-        Fixpoint eqter (t1 t2: @ter Tt) :=
-          match t1, t2 with
-            | T x1, T x2 => x1 == x2
-          end.
-        
-        Lemma eqterP: Equality.axiom eqter.
-        Proof.
-          move => t1 t2; apply: (iffP idP) => [| <-]; last by elim: t1 => //= t ->.
-          intros.
-          destruct t1, t2.
-          inversion H.
-          move: H1 => /eqP H1; subst.
-            by done.
-        Defined. 
-        
-        Canonical ter_eqMixin := EqMixin eqterP.
-        Canonical ter_eqType := Eval hnf in EqType ter ter_eqMixin.
 
-      End EqTer. 
-      
-      Section OptionFinType.
-
-        Variable T: finType.
-
-        Definition option_enum := None :: map (@Some _) (Finite.enum T).
-
-        Lemma option_enumP : @Finite.axiom (option_eqType T) option_enum.
-        Proof.
-          case => [ x | ].
-          rewrite /=.
-          rewrite count_map.
-          rewrite enumP.
-            by done.
-              by rewrite //= count_map count_pred0. Qed. 
-
-        Definition option_finMixin := Eval hnf in FinMixin option_enumP.
-        Canonical option_finType := Eval hnf in FinType (option T) option_finMixin.
-
-      End OptionFinType.
-      
-      
-      Section TerFinType.
-
-        Variable fT: finType.
-
-        Definition ter_enum := map (@T _) (Finite.enum fT).
-        
-        Lemma ter_enumP: @Finite.axiom (ter_eqType fT) ter_enum.
-        Proof.
-          case => x.
-          rewrite //=.
-          rewrite count_map.
-            by rewrite enumP.
-        Qed.
-
-        (* Fail *)
-        (* Definition ter_finMixin := Eval hnf in FinMixin ter_enumP.
-        Canonical option_finType := Eval hnf in FinType (T FT) option_finMixin. *)
-
-      End TerFinType.
 
       Variable T: finType.
-      Canonical option := Eval hnf in [finType of (option T)].
-      (* ------------------------------------------^^^^^^ should be ter/var *)
       
-      Let r := @mkRA option option option None .
+      Canonical terFin := Eval hnf in [finType of (@ter T)].
+      
+      Let r := @mkRA terFin .
       
 
       
