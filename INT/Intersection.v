@@ -1,7 +1,7 @@
 Require Import List.
 Require Import Fin.
 
-Add LoadPath "~/Git/YC_in_Coq".
+Add LoadPath "../".
 
 Require Import CFG.Base CFG.Definitions CFG.Binarize CFG.Chomsky.
 Require Import INT.Base INT.DFA INT.ChomskyInduction.

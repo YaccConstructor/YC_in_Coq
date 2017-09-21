@@ -2,7 +2,7 @@ Require Import List.
 Require Import Fin.
 
 
-Add LoadPath "~/Git/YC_in_Coq/". 
+Add LoadPath "../". 
 
 Require Import CFG.Definitions.
 Require Import INT.Base.
@@ -162,4 +162,8 @@ Module DFA.
 
   End Lemmas.
 
+<<<<<<< HEAD
 End DFA.
+=======
+End DFA.
+>>>>>>> 244d90840f1758459030ac37d374c9b056446e48

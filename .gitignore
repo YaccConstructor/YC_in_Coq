@@ -1,3 +1,7 @@
+**/*.vo
+**/*.glob
+**/*.v.d
+**/*.vo.aux
 *.vo
 *.glob
 *.v.d

@@ -1,6 +1,6 @@
 Require Import List.
 
-Add LoadPath "~/Git/YC_in_Coq/". 
+Add LoadPath "..". 
 Require Import CFG.Definitions.
  
 Module Base.
