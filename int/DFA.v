@@ -38,7 +38,7 @@ Module DFA.
           s_start: State;
           s_final: State;
           s_next: dfa_rule;
-        }.
+        }.         
 
     Definition s_accepts (d : s_dfa) (s: State) (w: word) : Prop :=
       (final_state (s_next d) s w) = (s_final d).

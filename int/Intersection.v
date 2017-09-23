@@ -1,49 +1,51 @@
 Require Import List.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice fintype bigop fingraph finfun finset.
 
-Require Import fl.cfg.Base fl.cfg.Definitions fl.cfg.Binarize fl.cfg.Chomsky.
+Require Import fl.cfg.Base fl.cfg.Definitions fl.cfg.Dec_Empty fl.cfg.Binarize fl.cfg.Chomsky.
 Require Import (* fl.int.Base2 *) (* INT.DFA*) fl.int.ChomskyInduction .
 Require Import fl.aut.misc fl.aut.automata.
 
+
 Module Intersection.
 
-  Import ListNotations   Base Symbols (* DFA*)
-         Misc ChomskyInduction Definitions Derivation Chomsky Automata.
-
-
-
-  (* Hypothesis  G: eq_dec nat. *)
-    
-
-  Search _ "eq_dec".
+  Import ListNotations  Dec_Empty Base Symbols Misc
+         ChomskyInduction Definitions Derivation Chomsky Automata.
+  
   Variable char: finType.
+  Definition word := seq.seq (@ter char).
+
+  
+  Section BigSection.
+
+
   
   Notation "x 'el' A" := (In x A) (at level 70).
-
-  Lemma ldl:
-    forall (T: eqType) (x: T) A,
-      In x A <-> x \in A.
-  Proof.
-    intros.
-    induction A; first by split.
-    split; intros.
-    { move: H => [H | H].
-      - by subst a; rewrite in_cons; apply/orP; left.
-      - by rewrite in_cons; apply/orP; right; apply IHA.
-    }
-    { move: H; rewrite in_cons; move => /orP [/eqP H | H].
-      - by subst.
-      - by right; apply IHA.
-    }
-  Qed.
-
     
-  Definition word := seq.seq (@ter char).
-  Variable w: word.
+
   
   Section Util.
 
-    
+    Section Kek.
+      
+      Lemma ldl:
+        forall (T: eqType) (x: T) A,
+          In x A <-> x \in A.
+      Proof.
+        intros.
+        induction A; first by split.
+        split; intros.
+        { move: H => [H | H].
+          - by subst a; rewrite in_cons; apply/orP; left.
+          - by rewrite in_cons; apply/orP; right; apply IHA.
+        }
+        { move: H; rewrite in_cons; move => /orP [/eqP H | H].
+          - by subst.
+          - by right; apply IHA.
+        }
+      Qed.
+
+    End Kek.
+
     Section Proections.
       
       Context {A B C: Type}.
@@ -222,13 +224,64 @@ Module Intersection.
 
 
     Definition dfa_with_single_final_state {T: finType} (dfa: @dfa T) final :=  dfa_fin dfa = pred1 final.
+    Definition dfa_with_single_final_state_2 {T: finType} (dfa: @dfa T) :=  exists final, dfa_fin dfa = pred1 final.
+
+(*    
+    Lemma fkfk:
+      forall (T: finType) (dfa: dfa T),
+        exists sdfas, 
+          forall w, ( dfa_lang dfa w <-> has (fun sdfa => dfa_lang sdfa w) sdfas).
+    Proof.
+      intros T dfa.
+      have DState := dfa_state dfa.
+      have DStart := dfa_s dfa.
+      have DFinPr := dfa_fin dfa.
+      have DRule := dfa_step dfa.
+
+      have F := bigop.index_enum DState.
+      unfold pred in DFinPr.
+      have L := filter (DFinPr) ([::DStart]). 
       
+      dfa.
+      
+    Admitted.
+*)
+    
+
     Variable dfa: dfa [finType of (@ter char)].
 
     Variable fin: dfa_state dfa.
 
-    
-    
+
+    Let lel := bigop.index_enum (dfa_state dfa).
+
+    Let ffc := filter (dfa_fin dfa) lel.
+
+    Let lst:seq (Automata.dfa [finType of ter]) :=
+      map (fun fin_state =>
+             {| dfa_s := (dfa_s dfa);
+                dfa_fin := pred1 fin_state;
+                dfa_step := dfa_step dfa |}) ffc.
+
+    Definition dfa_to_list_sdfa (T: finType) (dfa: Automata.dfa T): seq (Automata.dfa T) :=
+      let final_states := filter (dfa_fin dfa) (bigop.index_enum (dfa_state dfa)) in
+      map (fun fin_state =>
+             {| dfa_s := (dfa_s dfa);
+                dfa_fin := pred1 fin_state;
+                dfa_step := dfa_step dfa |}) final_states.
+
+      
+(*    Lemma fkfk:
+      forall (h : seq.seq _)
+             (w0 : seq [finType of (@ter char)]),
+        (dfa_lang dfa w <-> exists sdfa, (sdfa \in h) /\ (dfa_lang sdfa w)).
+     Proof.
+      intros w; split; intros H.
+      simpl in H; unfold dfa_lang in H.
+
+      
+    Admitted.
+*)
 
     Let dfa_state := dfa_state dfa.
     Let dfa_rule: dfa -> [finType of @ter char] -> dfa := @dfa_step [finType of @ter char] dfa.
@@ -280,7 +333,7 @@ Module Intersection.
 
       Print convert_rules.
       Print dfa_rule.
-      Definition convert_grammar (g: @grammar _ _): @grammar _ _ :=
+      Definition convert_grammar (g: @grammar char T2): @grammar char _ :=
         convert_rules g (dfa_rule).
 
 
@@ -725,11 +778,11 @@ Module Intersection.
               dfa_final dfa (fst3 (from, r, to)) w = thi3 (from, r, to).
           Proof.
             intros.
-            assert (EQ: w0 = to_word (to_phrase (V:= dfa_state * @var Vt * dfa_state) w0)).
+            assert (EQ: w = to_word (to_phrase (V:= dfa_state * @var Vt * dfa_state) w)).
             { clear.
-              induction w0; simpl.
+              induction w; simpl.
               - reflexivity.
-              - rewrite <- IHw0; reflexivity.
+              - rewrite <- IHw; reflexivity.
             } rewrite EQ; clear EQ.
             
             assert (P1: fst3 (from, r, to) = fst3 (unVar (V (from, r, to)))). simpl; reflexivity.
@@ -737,7 +790,7 @@ Module Intersection.
             rewrite P1; rewrite P2; clear P1 P2.
             
             apply chomsky_derivability_induction
-            with (w := to_phrase w0) (r0 := V (from, r, to)) (G0 := convert_rules G dfa_rule); auto; simpl.
+            with (w0 := to_phrase w) (r0 := V (from, r, to)) (G0 := convert_rules G dfa_rule); auto; simpl.
             { apply remains_chomsky; auto. }
             { clear H r.
               intros.
@@ -879,6 +932,8 @@ Module Intersection.
     Hypothesis H_T_eq_dec: eq_dec char.
     Hypothesis H_V_eq_dec: eq_dec U. 
 
+    Hypothesis H_nonempty: #| dfa_state | >0.
+    
     Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible. 
     
     Variable TToNat: char -> nat.
@@ -887,10 +942,26 @@ Module Intersection.
     Hypothesis bijection: forall x : nat, UToNat (NatToU x) = x.
     Let normalize G := @normalize char U _ _ TToNat UToNat NatToU bijection G. 
 
-    (* Consider an arbitrary grammar without epsilon rules... *)
+    (* TODO: ... *)
+    (* Consider an arbitrary grammar  *)
     Variable G: @grammar char U.
-    Hypothesis H_G_eps_free: forall (A: @var U) (u: @phrase char U), Vs A el dom G -> u <> [].
 
+    Variable S: @var U.
+    Hypothesis H_name: Vs S el dom G.
+
+
+(*     Lemma fkfk2:
+       forall w,
+         (language G S (to_phrase w) /\ dfa_lang dfa w) <->
+         exists sdfa, dfa_lang sdfa w /\ language G S (to_phrase w) /\ (sdfa \in lst) . 
+    Proof.
+      intros w; split; intros H.
+      simpl in H; unfold dfa_lang in H.
+      
+    Admitted.
+*)
+    
+    Hypothesis Hss: @dfa_with_single_final_state _ dfa fin.
     
     (* Variable dfa: dfa f. [finType of (@ter char)]. *)
     
@@ -903,36 +974,155 @@ Module Intersection.
     Let normalized_G := normalize G.
     Goal  chomsky normalized_G.
     Proof. apply chomsky_normalform. Qed.
-    Goal forall A w, Vs A el dom G -> language G A w <-> language normalized_G A w.
+    Goal forall w, w <> [] -> language G S w <-> language normalized_G S w.
     Proof. intros; eapply language_normalform; eauto. Qed. 
 
+    Search _ (finType).
     (* some comment *)
     Theorem final_theorem:
-      forall (v: var) (w : word),
-        Vs v el dom G -> 
-        dfa_lang dfa w /\ language G v (to_phrase w) <->
-        language (convert_grammar normalized_G) (V (dfa_s dfa, v, fin)) (to_phrase w).
+      forall (w : word),
+        w <> [] ->
+        dfa_lang dfa w /\ language G S (to_phrase w) <->
+        language (convert_grammar normalized_G) (V (dfa_s dfa, S, fin)) (to_phrase w).
     Proof.
+      intros w NE; split; intros H.
+      
 (*      assert (x: t n).
       { clear SDFA dfa_state.
         destruct n.
         - apply Nat.nlt_0_r in H_n_is_positive; inversion H_n_is_positive.
-        - apply F1. } 
-      intros v w EL; split; intros.
+        - apply F1. }  *)
+      
       { apply main_forward; auto.
         apply chomsky_normalform.
+        move: H_nonempty => /card_gt0P St.
         destruct H as [DFA GR].
         split; [|eapply language_normalform in GR]; eauto.
-        by done.
+        admit.
       }
       { apply main_backward in H; auto.
         - destruct H as [DFA GR].
-          split; [|eapply language_normalform]; eauto. 
-          exact GR.
-        - apply chomsky_normalform. } *)
+          split; [|eapply language_normalform]; eauto.
+        - admit.
+        - exact GR.
+        - apply chomsky_normalform.
+        - intros. 
+          admit.
+      } 
     Admitted.
 
   End Main2.
+  
+  End BigSection.
+
+  Section Mod.
+  
+  Section Main3.
+
+
+    
+    
+    Variable dfa: dfa [finType of (@ter char)].
+    Variable fin: dfa_state dfa.
+    Let dfa_state := dfa_state dfa.
+
+    
+    Context {U: Type}.
+    Hypothesis H_T_eq_dec: eq_dec char.
+    Hypothesis H_V_eq_dec: eq_dec U. 
+
+    Hypothesis H_nonempty: #|dfa_state| > 0.
+    
+    Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible. 
+    
+    Variable TToNat: char -> nat.
+    Variable UToNat: U -> nat.
+    Variable NatToU: nat -> U.
+    Hypothesis bijection: forall x : nat, UToNat (NatToU x) = x.
+    Let normalize G := @normalize char U _ _ TToNat UToNat NatToU bijection G. 
+
+    (* TODO: ... *)
+    (* Consider an arbitrary grammar  *)
+    Variable G: @grammar char U.
+
+    Variable S: @var U.
+    Hypothesis H_name: Vs S el dom G.
+
+    Print to_phrase .
+    Print word.
+
+    Let ls: seq (Automata.dfa [finType of ter]) := @dfa_to_list_sdfa [finType of ter] dfa.
+
+    
+(*
+    Let fudcn G lst:  seq (@grammar char (dfa_state * @var U * dfa_state)):=
+      map (fun (sdfa: Automata.dfa [finType of (@ter char)] ) =>
+             (@convert_grammar sdfa U G): @grammar char (dfa_state * @var U * dfa_state)) lst.
+  *)  
+    Lemma edd:
+      exists (Int: @grammar char (dfa_state * @var U * dfa_state)) St,
+        forall (w: _),
+          dfa_lang dfa w /\ language G S (to_phrase w) <->
+          language Int St (to_phrase w).
+    Proof.
+      intros.
+
+      have EG: forall w, ~ language [] (V (dfa_s dfa, S, fin)) (to_phrase w).
+      { admit. }
+
+      
+      have Lem : dec (exists u, language G S u).
+      admit.
+ 
+      move: Lem => [D|N]; last first.
+      { have C: forall u, ~ language G S u.
+        { by intros u L; apply N; exists u. }
+        exists [::], (V (dfa_s dfa, S, fin)).
+        intros w; split; intros H.
+        { move: H => [ _ H].
+            by apply C in H. }
+        { by exfalso; apply EG in H. }
+      }
+
+      have Alt: forall n, n == 0 \/ n > 0.
+      { by move => n; case n; [left|right]. }
+      move: (Alt (#|dfa_fin (dfa_connected dfa)|)) => [E | NE].
+      { move: E => /dfa_lang_empty_correct E.
+        exists [::], (V (dfa_s dfa, S, fin)).
+        intros w; split; intros H.
+        { move: H => [H _].
+          move: (E w); clear E; rewrite !inE; move => E.
+          move: H; rewrite inE; move => H.
+            by rewrite E in H.
+        } 
+        { by exfalso; apply EG in H. }        
+      }
+
+      
+      
+      
+      (* Выводится ли тут пустой символ? *)
+
+      set (SDFAS := @dfa_to_list_sdfa [finType of ter] dfa).
+      set ( NG := normalize G).
+
+
+      have F := map (fun (sdfa: Automata.dfa [finType of (@ter char)] ) =>
+                       (@convert_grammar sdfa U NG): @grammar char (sdfa * @var U * sdfa)) SDFAS.
+
+      
+      exists TGS.
+
+
+      
+      
+      unfold TGS.
+      
+      unfold TGS.
+      exists G.
+      
+
+  End Main3.
 
 End Intersection.
 
