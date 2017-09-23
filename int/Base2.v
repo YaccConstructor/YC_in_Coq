@@ -1,7 +1,7 @@
 Require Import List.
 
-Add LoadPath "..". 
-Require Import CFG.Definitions.
+(* Add LoadPath "~/Git/YC_in_Coq/". *)
+Require Import fl.cfg.Definitions.
  
 Module Base.
  
@@ -47,7 +47,7 @@ Module Base.
       apply (H1 w).
       apply (H2 w).
     Qed.
-    
+     
     Theorem lang_distr : forall l1 l2 l3 : (@language Tt),
                            l1 [/\] (l2 [\/] l3) [==] (l1 [/\] l2) [\/] (l1 [/\] l3).
     Proof.

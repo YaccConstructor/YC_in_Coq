@@ -1,11 +1,11 @@
 Require Import Recdef.
-Require Import ssreflect ssrbool ssrfun ssrnat eqtype seq fintype finset.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path choice finset fingraph.
 Require Import automata misc regexp re_standard re_fa.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Import Prenex Implicits.
-
+Import Automata.
 
 Lemma set1UrP (T: finType) (X: {set T}) x: reflect (x |: X = X) (x \in X). 
 Proof.
@@ -437,14 +437,15 @@ Section TransitiveClosure.
       apply: IHvv => //.
       by move: Hvv => /= /andP [] /andP [].
   Qed.
-  
+
+(*  
   Lemma L_rec (X: {set A}) x y z:
     L^(z |: X) x y =i plus (conc (L^X x z) (conc (star (L^X z z)) (L^X z y)))
                       (L^X x y).
   Proof.
     move => w.
     apply/idP/idP.
-      apply/(size_induction size): w x y => w IHw x y.
+    apply/(size_induction size): w x y. w IHw x y.
       destruct w.
         move => Hw. apply/plusP. by right.
       move/L_split => [/LP [H1 H2]|[w1 [w2 [Hw' [H1 [Hw1 Hw2]]]]]].
@@ -477,7 +478,7 @@ Section TransitiveClosure.
     move: Hvv. rewrite all_predD => /andP [H0 H1].
     by apply: L_flatten.
   Qed.              
-  
+*)  
 
   Lemma conc_eq (l1: language char) l2 l3 l4: l1 =i l2 -> l3 =i l4 -> conc l1 l3 =i conc l2 l4.
   Proof.
@@ -507,7 +508,8 @@ Section TransitiveClosure.
   Proof.
     by move => ->.
   Qed.
-  
+
+(*  
   Lemma L_R n (X: {set A}) x y: #|X| = n -> L^X x y =i R^X x y.
   Proof.
     elim: n X x y => [|n IHn] X x y.
@@ -546,7 +548,7 @@ Section TransitiveClosure.
     move/eqP.
     by rewrite -cards_eq0 HX.
   Qed.        
-        
+*)        
   Lemma dfa_L x y: L^setT x y =i [pred w | last x (dfa_run' A x w) == y ].
   Proof.
     move => w /=.
@@ -562,7 +564,7 @@ Section TransitiveClosure.
   Definition dfa_to_re: regular_expression char :=
     nPlus (map  (R^setT (dfa_s A)) (enum (dfa_fin A))).
     
-  
+(*  
   Lemma dfa_to_re_correct: dfa_lang A =i dfa_to_re.
   Proof.
     move => w.
@@ -583,7 +585,7 @@ Section TransitiveClosure.
       by rewrite dfa_L in_simpl -dfa_run_accept => /eqP ->.
     by rewrite cardsE.
   Qed.                                    
-
+*)
   Lemma nPlus_standard rs: all (standard char) rs -> standard char (nPlus rs).
   Proof. by elim: rs => [|r rs IHrs]. Qed.
 
@@ -619,11 +621,11 @@ Section Ext_Standard.
 
   Lemma ext_re_to_std_re_standard r: standard char (ext_re_to_std_re r).
   Proof. by rewrite dfa_to_re_standard. Qed.
-  
+(*  
   Lemma ext_re_to_std_re_correct r: (ext_re_to_std_re r) =i r.
   Proof.
     move => w.
     by rewrite /ext_re_to_std_re -dfa_to_re_correct re_to_dfa_correct.
   Qed.
-    
+*)    
 End Ext_Standard.

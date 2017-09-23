@@ -1,12 +1,11 @@
 Require Import List.
 Require Import Fin.
 
-Add LoadPath "../".
 
-Require Import CFG.Binarize.
-Require Import CFG.Chomsky.
-Require Import CFG.Definitions. 
-Require Import CFG.Separate.
+Require Import fl.cfg.Binarize.
+Require Import fl.cfg.Chomsky.
+Require Import fl.cfg.Definitions. 
+Require Import fl.cfg.Separate.
 
 Module ChomskyInduction.
   

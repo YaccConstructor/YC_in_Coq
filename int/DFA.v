@@ -1,15 +1,12 @@
 Require Import List.
 Require Import Fin.
 
-
-Add LoadPath "../". 
-
-Require Import CFG.Definitions.
-Require Import INT.Base.
+Require Import fl.cfg.Definitions.
+Require Import fl.int.Base2.
 
 Module DFA.
 
-  Import Base Definitions.
+  Import Base Base2 Definitions.
   
   Section Definitions. 
 
@@ -162,8 +159,4 @@ Module DFA.
 
   End Lemmas.
 
-<<<<<<< HEAD
 End DFA.
-=======
-End DFA.
->>>>>>> 244d90840f1758459030ac37d374c9b056446e48

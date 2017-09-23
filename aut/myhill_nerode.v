@@ -1,11 +1,10 @@
-Require Import ssreflect ssrbool ssrnat fintype eqtype seq ssrfun ssrbool finset choice.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path choice finset fingraph.
 Require Import automata misc regexp.
 Require Import base.
 
 Set Implicit Arguments.
 Import Prenex Implicits.
-
-
+Import Automata.
 
 Lemma nand3P (b1 b2 b3: bool):
   reflect (~[\/ b1, b2 | b3]) [&& ~~ b1, ~~ b2 & ~~ b3].

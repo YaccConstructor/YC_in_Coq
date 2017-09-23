@@ -1,4 +1,4 @@
-Require Import ssreflect ssrbool fintype.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path choice finset fingraph.
 
 Require Import regexp.
 

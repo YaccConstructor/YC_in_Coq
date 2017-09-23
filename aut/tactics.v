@@ -1,5 +1,5 @@
 (* Author: Christian Doczkal *)
-Require Import ssreflect ssrbool eqtype.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path. 
 
 (** A slightly extended version of [done] using eassumption and rewriting
 logical connectives *)

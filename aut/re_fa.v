@@ -1,11 +1,13 @@
-Require Import ssreflect ssrbool ssrfun ssrnat eqtype seq fintype finfun fingraph  finset.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path choice finset fingraph.
 Require Import automata regexp misc.
 
 Set Implicit Arguments.
 
 Section RE_FA.
+  Import Automata.
+  
   Variable char: finType.
-  Definition word:= misc.word char.
+  Definition word:= word char.
 
   Fixpoint re_to_dfa (r: regular_expression char): dfa char :=
     match r with

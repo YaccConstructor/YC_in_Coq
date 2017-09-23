@@ -2,8 +2,8 @@
     Authors: Thierry Coquand, Vincent Siles
 *)
 (* begin hide *)
-Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype. 
-Require Import bigop path glue.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path. 
+Require Import glue.
 
 Set Implicit Arguments. 
 Unset Strict Implicit. 

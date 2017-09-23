@@ -3,8 +3,7 @@
 *)
 (* begin hide *)
 Require Import Mergesort Permutation.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype.
-Require Import path.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype path.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

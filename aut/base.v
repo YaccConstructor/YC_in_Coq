@@ -1,6 +1,5 @@
 (* Author: Christian Doczkal *)
-Require Import ssreflect ssrbool eqtype ssrnat seq.
-Require Import ssrfun choice fintype finset path fingraph bigop.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq fintype bigop path choice finset fingraph.
 Require Import Relations.
 Require Import tactics.
 
