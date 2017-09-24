@@ -283,28 +283,28 @@ Module Intersection.
     Admitted.
 *)
 
-    Let dfa_state := dfa_state dfa.
-    Let dfa_rule: dfa -> [finType of @ter char] -> dfa := @dfa_step [finType of @ter char] dfa.
-    (* Let dfa_final := dfa_fin dfa.*)
-    
     
   Section SomeSection.
     
     (* TODO: comment *)
     Variable Tt Vt: Type.
 
-    Search _ (finType).
-    Let fff := bigop.index_enum dfa_state.
 
-    
-
+        
     Section Conversion.
 
-      Context {T1 T2: Type}.
 
+      Variable dfa1: Automata.dfa [finType of (@ter char)].
+      Let dfa_state := Automata.dfa_state dfa1.
+      Let dfa_rule := @dfa_step [finType of @ter char] dfa1.
+
+      Let fff := bigop.index_enum dfa_state.
+      
+      
+      
+      Let TripleRule := @rule ( char) (dfa_state * @var Vt * dfa_state).
+      
       Section ToTriple.
-
-        Let TripleRule := @rule ( char) (dfa_state * @var T2 * dfa_state).
 
         Definition convert_nonterm_rule_2 (r r1 r2: _) (s1 s2 : _): seq.seq TripleRule :=
           map (fun s3 => R (V (s1, r, s3)) [Vs (V (s1, r1, s2)); Vs (V (s2, r2, s3))]) (fff).
@@ -331,14 +331,17 @@ Module Intersection.
         flat_map (convert_rule next) rules.
       
 
-      Print convert_rules.
-      Print dfa_rule.
-      Definition convert_grammar (g: @grammar char T2): @grammar char _ :=
+      Definition convert_grammar (g: @grammar char Vt): @grammar char (dfa_state * @var Vt * dfa_state):=
         convert_rules g (dfa_rule).
 
 
     End Conversion.
 
+    
+    Let dfa_state := dfa_state dfa.
+    Let dfa_rule: dfa -> [finType of @ter char] -> dfa := @dfa_step [finType of @ter char] dfa.
+    (* Let dfa_final := dfa_fin dfa.*)
+    
 
     Hint Resolve lemma2.
 
@@ -385,10 +388,10 @@ Module Intersection.
       Proof.
         set (rule := (R (V (from, r, to)) [Vs (V(from, r1, mid)); Vs (V (mid, r2, to))])).
         unfold convert_nonterm_rule_2.
-        assert (H2: to el fff).
+        assert (H2: to el (index_enum dfa)).
         apply ldl. by rewrite mem_index_enum. 
 
-        induction fff.
+        induction (index_enum dfa).
         simpl in H2.
         contradiction.
         simpl.  
@@ -408,9 +411,9 @@ Module Intersection.
       Proof.
         set (rule := (R (V (from, r, to)) [Vs (V(from, r1, mid)); Vs (V (mid, r2, to))])).
         unfold convert_nonterm_rule_1.
-        assert (H2: mid el fff).
+        assert (H2: mid el (index_enum dfa)).
         apply ldl. by rewrite mem_index_enum. 
-        induction fff.
+        induction (index_enum dfa).
         simpl in H2.
         contradiction.
         simpl.  
@@ -437,7 +440,7 @@ Module Intersection.
           set (rule := (R (V (from, r, to)) [Vs (V(from, r1, mid)); Vs (V (mid, r2, to))])).
           unfold convert_nonterm_rule.
           
-          assert (EL: from el fff).
+          assert (EL: from el (index_enum dfa)).
           
           apply ldl. by rewrite mem_index_enum.
           
@@ -750,7 +753,7 @@ Module Intersection.
         Theorem main_forward:
           forall (v: var) (w : word),
             (dfa_lang dfa) w /\ language G v (to_phrase w) ->
-            (language (convert_grammar G) (V (st, v, f)) (to_phrase w)).
+            (language (convert_grammar dfa G) (V (st, v, f)) (to_phrase w)).
         Proof.
           intros ? w INT.
           destruct INT as [DFA [DER TER]].
@@ -829,8 +832,6 @@ Module Intersection.
 
         Section Section2.
           
-          Variable next: dfa -> [finType of @ter char] -> dfa.
-          
           Lemma der_in_triple_gr_implies_der_in_initial_gr':
             forall (r: var) (w: word),
               der (convert_rules G dfa_rule) r (to_phrase w) ->
@@ -843,9 +844,15 @@ Module Intersection.
               - by simpl; rewrite IHw. }
             rewrite <- EQ.
             intros CN.
- 
-            apply chomsky_derivability_induction with (G0 := convert_rules G dfa_rule) (r0 := r) (w0 := to_phrase w); auto.
+
+            have HHH:= @chomsky_derivability_induction _ _ (convert_rules G dfa_rule)
+                                                       (fun r w => der G (snd3 (unVar r)) (trans_phrase F1 w)) _ _ _ _ r (to_phrase w).
+            apply HHH.
+            (*            apply chomsky_derivability_induction with (G0 := convert_rules G dfa_rule) (r0 := r) (w0 := to_phrase w); auto. *)
+            
+            
             { apply remains_chomsky; auto. }
+            { by done. }
             { intros r' t IN.
               destruct r' as [[[from r'] to]]; simpl in *.
               apply rDer; apply backward_terminal_rule_inclusion in IN; auto. }
@@ -860,6 +867,8 @@ Module Intersection.
               rewrite KEK.
               apply @derivability_step with (r1 := r1) (r2 := r2); auto.
               apply backward_nonterminal_rule_inclusion in IN; auto. }
+            { by done. }
+            { by done. }
           Qed.
 
           Lemma der_in_triple_gr_implies_der_in_initial_gr:
@@ -884,14 +893,15 @@ Module Intersection.
         Print st.
 
         Variable f: dfa_state.
-        Hypothesis H: @dfa_with_single_final_state _ dfa f.
+        Hypothesis H: @dfa_with_single_final_state _ dfa f. 
         
 
         Theorem main_backward:
           forall (w : word) (v: var),
-            language (convert_grammar G) (V (st, v, f)) (to_phrase w) ->
+            language (convert_grammar dfa G) (V (st, v, f)) (to_phrase w) ->
             dfa_lang dfa w /\ language G v (to_phrase w).
         Proof.
+          
           intros w ? TR.
           destruct TR as [DER TER]. 
           unfold convert_grammar in DER.
@@ -927,7 +937,7 @@ Module Intersection.
 
   Section Main2.
 
-    
+(*    
     Context {U: Type}.
     Hypothesis H_T_eq_dec: eq_dec char.
     Hypothesis H_V_eq_dec: eq_dec U. 
@@ -1010,7 +1020,8 @@ Module Intersection.
           admit.
       } 
     Admitted.
-
+ *)
+    
   End Main2.
   
   End BigSection.
@@ -1051,8 +1062,13 @@ Module Intersection.
     Print to_phrase .
     Print word.
 
-    Let ls: seq (Automata.dfa [finType of ter]) := @dfa_to_list_sdfa [finType of ter] dfa.
+    Variable dfa1: Automata.dfa [finType of (@ter char)] .
+    Variable dfa2: Automata.dfa [finType of (@ter char)] .
+    Variable dfa3: Automata.dfa [finType of (@ter char)] .
 
+
+(*    Let lst := [@convert_grammar dfa1 U G; @convert_grammar dfa2 U G].
+*)
     
 (*
     Let fudcn G lst:  seq (@grammar char (dfa_state * @var U * dfa_state)):=
@@ -1103,13 +1119,11 @@ Module Intersection.
       
       (* Выводится ли тут пустой символ? *)
 
-      set (SDFAS := @dfa_to_list_sdfa [finType of ter] dfa).
-      set ( NG := normalize G).
-
-
-      have F := map (fun (sdfa: Automata.dfa [finType of (@ter char)] ) =>
-                       (@convert_grammar sdfa U NG): @grammar char (sdfa * @var U * sdfa)) SDFAS.
-
+      
+      
+      set (NG := normalize G).
+      set (TR := convert_grammar dfa NG).
+      (* set (SDFAS := @dfa_to_list_sdfa [finType of ter] TR). 
       
       exists TGS.
 
@@ -1119,10 +1133,12 @@ Module Intersection.
       unfold TGS.
       
       unfold TGS.
-      exists G.
+      exists G. *)
+    Admitted.
       
 
   End Main3.
 
+  End Mod.
 End Intersection.
 
