@@ -3,6 +3,7 @@ Require Import Fin.
 
 Require Import fl.cfg.Definitions.
 Require Import fl.int.Base2.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice fintype bigop fingraph finfun finset.
 
 Module DFA.
 
@@ -145,17 +146,52 @@ Module DFA.
       auto.
       auto. 
     Qed.
- 
-(* 
-    Theorem lemma2_3:
-      forall (d : dfa),
-        (dfa_language d T) [==] (language_list_union (map (@s_dfa_language State) (split_dfa d))).
+
+
+    (* TODO: del *)
+    (* Feed tactic -- exploit with multiple arguments.
+       (taken from http://comments.gmane.org/gmane.science.mathematics.logic.coq.club/7013) *)
+    Ltac feed H :=
+      match type of H with
+        | ?foo -> _ =>
+          let FOO := fresh in
+          assert foo as FOO; [|specialize (H FOO); clear FOO]
+      end.
+    
+    Lemma H_correct_split:
+      forall dfa w,
+        @dfa_language State T dfa w <->
+        exists sdfa, In sdfa (split_dfa dfa) /\ s_dfa_language sdfa w.
     Proof.
-      intros.
-      apply mk_laguage_eq.
-      apply lemma2_3_1.
-      apply lemma2_3_2.
-    Qed. *)
+      intros dfa w.
+      have Lem:
+        forall dfa w,
+          language_list_union (map s_dfa_language (split_dfa dfa)) w <->
+          exists sdfa, In sdfa (split_dfa dfa) /\ s_dfa_language sdfa w.
+      { clear; intros T V ? w; split; intros H.
+        { destruct dfa0 as [st fins rule].
+          induction fins; first by done.
+          move: H => [SDFA|LANG].
+          -  exists {| s_start := st; s_final := a; s_next := rule |}.
+             split; [ by left | by done]. 
+             feed IHfins. by done.
+            clear LANG; move: IHfins => [sdfa [EL LANG]].
+            exists sdfa; split. by right. by done.
+        }
+        move: H => [sdfa [EL LANG]]. 
+        apply in_split in EL.
+        move: EL => [l1 [l2 EQ]].
+        rewrite EQ.
+        simpl.
+        clear EQ.
+        induction l1.
+        simpl. left; by done.
+        simpl in *. by right.
+      } 
+      split; intros H.
+      - by apply Lem, lemma2_3_1.
+      - by apply lemma2_3_2, Lem. 
+    Qed.
 
   End Lemmas.
 

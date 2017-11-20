@@ -3,8 +3,7 @@ Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Sets.Finite_sets.
 
-Add LoadPath "~/Git/YC_in_Coq/". 
-Require Import CFG.Definitions CFG.Derivation INT.Intersection.
+Require Import cfg.Definitions cfg.Derivation int.Intersection.
 Require Import GLL.GLL.
 From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq bigop fintype fingraph finfun finset choice.
 
@@ -260,8 +259,8 @@ Section RA.
 
   End Definitions.
 
-  (* TODO: fix ⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓*)
-  Section SectionName.
+  (* TODO: fix/del ⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓⇓*)
+(*  Section SectionName.
 
     Context {T'': Type}.
     
@@ -521,6 +520,6 @@ Section RA.
       
     End FSA_Image.
     
-  End RA_Operations.
+  End RA_Operations. *)
 
 End RA.

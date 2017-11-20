@@ -1,7 +1,6 @@
 Require Import List.
 
-Add LoadPath "~/Git/YC_in_Coq/". 
-Require Import CFG.Definitions CFG.Derivation INT.Intersection.
+Require Import cfg.Definitions cfg.Derivation int.Intersection.
 (* Require Import AUT.misc. *)
 
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq fintype bigop.
@@ -156,7 +155,7 @@ Module GLLMain.
 
       Section EqSymbol.
 
-        Fixpoint eqsymbol (s1 s2: symbol) :=
+        Fixpoint eqsymbol (s1 s2: @symbol Tt Vt) :=
           match s1, s2 with
             | Ts t1, Ts t2 => t1 == t2
             | Vs v1, Vs v2 => v1 == v2
@@ -444,11 +443,11 @@ Module GLLMain.
     (* Complexity of alg *)
     Variable f: @grammar T V -> @phrase T V -> nat.
     
-    Theorem correctness_of_gll:
+(*    Theorem correctness_of_gll:
       language G A string <-> parse_gll G A (f G string) (to_word string).
     Proof.
       (* We have to do so many things to get it *)
-    Admitted.
+    Admitted. *)
     
   End Lemmas.
   
@@ -683,4 +682,4 @@ Module GLLMain.
   End Examples.
   
 
-End 
+End GLLMain.
