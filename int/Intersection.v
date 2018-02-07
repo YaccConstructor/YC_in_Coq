@@ -902,7 +902,7 @@ Module Intersection.
     Variables (TToNat: Tt -> nat) (UToNat: Vt -> nat) (NatToU: nat -> Vt).
     Hypothesis bijection: forall x : nat, UToNat (NatToU x) = x.
 
-    
+     
     (* TODO: comment *)
     Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible.
 

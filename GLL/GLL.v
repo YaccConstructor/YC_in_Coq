@@ -509,7 +509,7 @@ Module GLLMain.
       Proof.      
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
-
+(*
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
@@ -543,8 +543,9 @@ Module GLLMain.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
           by done.
-      Qed.
-
+ *)
+      Admitted.
+      
     End ABCGrammar.
 
     Section BracketsGrammar.
@@ -565,7 +566,7 @@ Module GLLMain.
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
         
-        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
+(*        destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
@@ -607,7 +608,9 @@ Module GLLMain.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
           by done.
-      Qed.
+      Qed. *)
+      Admitted.
+      
       
     End BracketsGrammar.
 
@@ -654,7 +657,7 @@ Module GLLMain.
       Proof.      
         intros.
         unfold parse_gll, add_all_descriptors; simpl.
-
+(*
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
@@ -675,7 +678,9 @@ Module GLLMain.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
         destruct n; simpl; [inversion H | ]; rewrite /add_all_descriptors ?add0n ?addn1; simpl.
           by done.
-      Qed.
+      Qed. *)
+      Admitted.
+      
       
     End Grammar_Fig1_Izmaylova.
     
