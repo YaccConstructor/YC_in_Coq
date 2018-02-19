@@ -78,17 +78,22 @@ Module Intersection.
           Definition unVar (v: var): Vt := let '(V e) := v in e.
 
         End SEction100.
+      Section Kek.
+
+
+        (* TODO remove duplicate *)
+        Fixpoint to_phrase {T V: Type} (w: word): @phrase T V :=
+          match w with
+            | s::sx => Ts s :: to_phrase sx
+            | _ => []
+          end.
+                
+      End Kek.        
 
         Section Sec.
           
           Context {T V: Type}.
 
-          Fixpoint to_phrase (w: word): @phrase T V :=
-            match w with
-              | s::sx => Ts s :: (to_phrase sx)
-              | _ => []
-            end.
-          
           Fixpoint to_word (p: @phrase T V): list ter :=
             match p with
               | Ts x :: sx => x :: to_word sx
@@ -96,7 +101,7 @@ Module Intersection.
             end.
 
 
-          Lemma lemma2: forall (w: word), terminal (to_phrase w).
+          Lemma lemma2: forall (w: word), terminal (@to_phrase T V w).
           Proof.
             intros w.
             induction w.
@@ -980,7 +985,7 @@ Module Intersection.
         intros w.
         case: w => [|].
         { split; intros.
-          - apply Union.H_correct_union.
+          - apply Union.correct_union_2.
             exists (I1, [R I1 []]); simpl; split.
             + split; last by done.
                 by apply rDer.
@@ -990,7 +995,7 @@ Module Intersection.
         {   
           intros a w.
           split; [move => [DL GL]| move => IL].
-          apply Union.H_correct_union. 
+          apply Union.correct_union_2. 
           exists (I1, I2).
           split; last by right.
           { apply H_correct_split in DL.
@@ -1004,7 +1009,7 @@ Module Intersection.
               - destruct n; [by done | by apply F1].
             }
             { by split; last apply language_normalform. }
-            eapply Union.H_correct_union.
+            eapply Union.correct_union_2.
             exists ((V (s_start s_dfa, S, s_final s_dfa)), convert_grammar NG s_dfa); simpl.
             split.
             - by done.
@@ -1015,7 +1020,7 @@ Module Intersection.
           {  
             intros.
             unfold I2, I1, I in IL.
-            eapply Union.H_correct_union in IL.
+            eapply Union.correct_union_2 in IL.
             move: IL => [[gr v] [LANG EL]]; simpl in *.
             unfold TRS in EL.
             move: EL => [EL | [EL| EL ]].
@@ -1024,7 +1029,7 @@ Module Intersection.
               move: LANG => [DER _].
                 by apply Fact1 in DER. }
             { inversion EL; subst gr; subst v; clear EL.
-              have CORRECT := Union.H_correct_union _ (a::w).
+              have CORRECT := Union.correct_union_2 _ (a::w).
               apply CORRECT in LANG.
               move: LANG => [[v gr] [LANG EL]].
               unfold I2, I in EL.
@@ -1061,7 +1066,7 @@ Module Intersection.
               by move: EPS => [H|H]; apply: H.
           - clear EPS; exfalso; simpl in H.
             unfold I2, I1, I in H.
-            have CORRECT := Union.H_correct_union _ []. 
+            have CORRECT := Union.correct_union_2 _ []. 
             apply CORRECT in H.
             move: H => [[v gr] [LANG EL]]; simpl in LANG.
             unfold TRS in EL; apply in_map_iff in EL.
@@ -1091,7 +1096,7 @@ Module Intersection.
               - destruct n; [by done | by apply F1].
             }
             { by split; last apply language_normalform. }
-            eapply Union.H_correct_union.
+            eapply Union.correct_union_2.
             exists ((V (s_start s_dfa, S, s_final s_dfa)), convert_grammar NG s_dfa); simpl.
             split.
             - by done.
@@ -1102,7 +1107,7 @@ Module Intersection.
           { 
             intros.
             unfold I2, I1, I in IL.
-            eapply Union.H_correct_union in IL.
+            eapply Union.correct_union_2 in IL.
             move: IL => [[gr v] [LANG EL]]; simpl in *.
             unfold TRS in EL.
             apply in_map_iff in EL.
