@@ -1118,70 +1118,53 @@ Module Union.
     Section MainLemma1.
 
       Lemma H_correct_union:
-        forall w ls, 
+        forall ls word, 
           @Derivation.language _ _
                                (@grammar_union Tt Vt ls)
                                (V (start Vt))
-                               (to_phrase _ w) <->
-          exists s_l, @Derivation.language _ _ (snd s_l) (fst s_l) (to_phrase _ w) /\ In s_l ls.
+                               (to_phrase _ word) <->
+          exists s_l, @Derivation.language _ _ (snd s_l) (fst s_l) (to_phrase _ word) /\ In s_l ls.
       Proof.
         intros.
         have Lem:
           forall ls w,
             language_list_union [seq grammar_to_language (Tt:=Tt) i | i <- ls] w <->
             exists s_g, In s_g ls /\ Derivation.language s_g.2 s_g.1 (to_phrase _ w).
-        {  
-          clear. intros T ls w; split; intros H.
+        { clear; intros T ls w; split; intros H.
           { induction ls; first by done.
-            move: H => [H|H].
-            - clear IHls.
-              exists a; split.
-                by left.
-                destruct a; simpl in *.
-                split; [by done| by apply lemma2].
-            - apply IHls in H; clear IHls.
+            move: H => [DER|H].
+            { exists a; split; first by left.
+              destruct a; simpl in *.
+                by split; last apply lemma2. 
+            }
+            { apply IHls in H; clear IHls.
               move: H => [[s g] [EL [DER TER]]].
-              exists (s,g); split; [by right | by done].
+                by exists (s,g); split; [right | ].
+            }
           }
           { move: H => [[s g] [EL [DER TER]]].
             apply in_split in EL.
             move: EL => [l1 [l2 EQ]].
-            rewrite EQ.
-            simpl.
-            clear EQ.
-            induction l1.
-            simpl. left; by done.
-            simpl in *. by right.
+            rewrite EQ; clear EQ.
+              by induction l1; simpl in *; [left | right].
           } 
         }
-        
         intros; split; intros.
         { move: H => [DER TER].
-          have SU := same_union ls w.
-          move: SU => [_ SU2].
-
-          move: (SU2 DER) => JJ.
-          apply Lem in SU2.
-          move: SU2 => [s_g [EL LANG]].
-          exists s_g. split. by done.  by done.
-          by done.
+          move: (same_union ls word0) => [_ SU].
+          apply Lem in SU; last by done.
+          move: SU => [s_g [EL LANG]].
+            by exists s_g; split.
         }
         { move: H => [s_g [LANG EL]].
-          have SU := same_union ls w.
-          move: SU => [SU1 _].
-
-          have HH: language_list_union [seq grammar_to_language i | i <- ls] w.
+          move: (same_union ls word0) => [SU1 _].
+          have HH: language_list_union [seq grammar_to_language i | i <- ls] word0.
           { by apply Lem; exists s_g; split. }
           apply SU1 in HH.
-
-          unfold grammar_to_language in SU1.
-          unfold language; split.
-          - by done.
-          - move: LANG => [DER TER].
-            clear SU1 DER.
-            induction w.
-            + by done.
-            + by apply lemma2.
+          split; first by done.
+          move: LANG => [DER TER].
+          induction word0; first by done.
+            by apply lemma2.
         }
       Qed.      
       

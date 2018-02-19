@@ -1024,7 +1024,7 @@ Module Intersection.
               move: LANG => [DER _].
                 by apply Fact1 in DER. }
             { inversion EL; subst gr; subst v; clear EL.
-              have CORRECT := Union.H_correct_union (a::w).
+              have CORRECT := Union.H_correct_union _ (a::w).
               apply CORRECT in LANG.
               move: LANG => [[v gr] [LANG EL]].
               unfold I2, I in EL.
@@ -1061,7 +1061,7 @@ Module Intersection.
               by move: EPS => [H|H]; apply: H.
           - clear EPS; exfalso; simpl in H.
             unfold I2, I1, I in H.
-            have CORRECT := Union.H_correct_union []. 
+            have CORRECT := Union.H_correct_union _ []. 
             apply CORRECT in H.
             move: H => [[v gr] [LANG EL]]; simpl in LANG.
             unfold TRS in EL; apply in_map_iff in EL.
@@ -1126,6 +1126,6 @@ Module Intersection.
     Qed.
     
   End Main3.
-  
+   
 End Intersection.
 
