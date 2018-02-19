@@ -11,7 +11,7 @@ Module Union.
   Section Big.
     
     Section Definitions. 
-
+ 
       Section Del1.
         
         Variable Tt Vt: Type.
@@ -1117,17 +1117,6 @@ Module Union.
 
     Section MainLemma1.
 
-      (* TODO: del *)
-
-      (* Feed tactic -- exploit with multiple arguments.
-       (taken from http://comments.gmane.org/gmane.science.mathematics.logic.coq.club/7013) *)
-      Ltac feed H :=
-        match type of H with
-          | ?foo -> _ =>
-            let FOO := fresh in
-            assert foo as FOO; [|specialize (H FOO); clear FOO]
-        end.    
-
       Lemma H_correct_union:
         forall w ls, 
           @Derivation.language _ _
@@ -1170,18 +1159,21 @@ Module Union.
         { move: H => [DER TER].
           have SU := same_union ls w.
           move: SU => [_ SU2].
-          feed SU2; first by done.
 
- 
-          
+          move: (SU2 DER) => JJ.
           apply Lem in SU2.
           move: SU2 => [s_g [EL LANG]].
           exists s_g. split. by done.  by done.
+          by done.
         }
         { move: H => [s_g [LANG EL]].
           have SU := same_union ls w.
           move: SU => [SU1 _].
-          feed SU1; first by apply Lem; exists s_g; split. 
+
+          have HH: language_list_union [seq grammar_to_language i | i <- ls] w.
+          { by apply Lem; exists s_g; split. }
+          apply SU1 in HH.
+
           unfold grammar_to_language in SU1.
           unfold language; split.
           - by done.
