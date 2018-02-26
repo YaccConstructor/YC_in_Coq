@@ -5,98 +5,71 @@ Require Import fl.cfg.Base fl.cfg.Definitions fl.cfg.Binarize fl.cfg.Chomsky.
 Require Import fl.int.Base2 fl.int.DFA fl.int.ChomskyInduction.
 
 Module Union.
-  Import ListNotations Definitions Derivation
-         Base Base2 ChomskyInduction.
+  
+  Import ListNotations Definitions Derivation Base Base2 ChomskyInduction.
 
-  Section Big.
+  (** * Definitions *)
+  (** In this section we define a function that creates a union-grammar out of a list of grammars. *)
+  Section Definitions.
     
-    Section Definitions. 
+    Variables Tt Vt: Type.
+
+    (* TODO: move? *)
+    Definition grammar_to_language {Tt Vl : Type} (g : @var Vl * (@grammar Tt Vl)) : language :=
+      let '(st, gr) := g in fun word => der gr st (to_phrase word).
+
+    Inductive labeled_Vt : Type :=
+    |  start : labeled_Vt
+    |  lV : nat -> @var Vt -> labeled_Vt.
+
+    Definition label_var (label: nat) (v: @var Vt): @var labeled_Vt :=
+      V (lV label v).
+    
+    Definition label_symbol (label: nat) (s: @symbol Tt Vt): @symbol Tt labeled_Vt :=
+      match s with
+        | Ts t => Ts t
+        | Vs v => Vs (V (lV label v))
+      end.
+    
+    Definition label_phrase (label: nat) (p: @phrase Tt Vt): @phrase Tt labeled_Vt :=
+      map (label_symbol label) p.
+    
+    Definition label_rule (label: nat) (r : @rule Tt Vt): @rule Tt labeled_Vt :=
+      let '(R v p) := r in R (V (lV label v)) (label_phrase label p).
+    
+    Definition label_grammar (label: nat) (g: @grammar Tt Vt): @grammar Tt labeled_Vt:=
+      map (label_rule label) g.
+    
+    Definition label_grammar_and_add_start_rule (label: nat) (g : @var Vt * (@grammar Tt Vt)):
+      @grammar Tt labeled_Vt :=
+      let '(st, gr) := g in (R (V start) [Vs (V (lV label st))]) :: label_grammar label gr.        
+    
+    Fixpoint label_list_of_grammars (grammars : seq (@var Vt * (@grammar Tt Vt))):
+      @grammar Tt labeled_Vt :=
+      match grammars with
+        |  [] => []
+        |  ((_,gr)::t) => label_grammar (length t) gr ++ (label_list_of_grammars t)
+      end.
+
+    Fixpoint grammar_union (grammars : list (@var Vt * (@grammar Tt Vt))): @grammar Tt labeled_Vt :=
+      match grammars with
+        |  [] => []
+        |  (g::t) => label_grammar_and_add_start_rule (length t) g ++ (grammar_union t)
+      end.
+
+  End Definitions.
+
+  Section Lemmas.
+
+    (** * Util *)
+    (** In this section we prove a few usefull facts about the union-related functions. *)        
+    Section Util.
       
-      Section Del1.
-        
-        Variable Tt Vt: Type.
-
-        Inductive labeled_Vt : Type :=
-        |  start : labeled_Vt
-        |  lV : nat -> @var Vt -> labeled_Vt.
-
-        Definition label_var (label: nat) (v: @var Vt): (@var labeled_Vt) := V (lV label v).
-        
-        Definition label_symbol (label: nat) (s: @symbol Tt Vt): (@symbol Tt labeled_Vt) :=
-          match s with
-            | Ts t => Ts t
-            | Vs v => Vs (V (lV label v))
-          end.
-        
-        Definition label_phrase (label: nat) (p : @phrase Tt Vt) : phrase :=
-          map (label_symbol label) p.
-        
-        Definition label_rule (label: nat) (r : @rule Tt Vt): (@rule Tt labeled_Vt) :=
-          let '(R v p) := r in R (V (lV label v)) (label_phrase label p).
-        
-        Definition label_grammar (label: nat) (g : @var Vt * (@grammar Tt Vt)): @grammar Tt labeled_Vt :=
-          let '(st, gr) := g in (R (V start) [Vs (V (lV label st))]) :: (map (label_rule label) gr).
-
-        Fixpoint grammar_union (l : list (@var Vt * (@grammar Tt Vt))): @grammar Tt labeled_Vt :=
-          match l with
-            |  [] => []
-            |  (g::t) => label_grammar (length t) g ++ (grammar_union t)
-          end.
-
-      End Del1.
-
-      Section Kek.
-
-
-        (* TODO remove duplicate *)
-        Fixpoint to_phrase {T V: Type} (w: word): @phrase T V :=
-          match w with
-            | s::sx => Ts s :: to_phrase sx
-            | _ => []
-          end.
-        
-      End Kek.
-
-      Section Del2.
-        
-        Variables Tt Vt: Type.
-        
-        Definition grammar_to_language {Tt Vl : Type} (g : @var Vl * (@grammar Tt Vl)) : language :=
-          let '(st, gr) := g in fun w => (der gr (st) (to_phrase w)).
-
-
-        
-        (* TODO Import*)
-        Definition unVar (v: var): Vt := let '(V e) := v in e.
-
-        
-        Definition get_n (l : @var (labeled_Vt Vt)) : nat :=
-          match l with 
-            |  V (start ) => 0
-            |  V (lV n _) => S n
-          end.
-
-        
-        Definition label_grammar_simpl (label: nat) (g: @grammar Tt Vt): @grammar Tt (labeled_Vt Vt):=
-          map (label_rule label) g.
-
-        Fixpoint label_list_of_grammars (l : seq (@var Vt * (@grammar Tt Vt))): @grammar Tt (labeled_Vt Vt) :=
-          match l with
-            |  [] => []
-            |  ((_,gr)::t) => label_grammar_simpl (length t) gr ++ (label_list_of_grammars t)
-          end.
-
-      End Del2.
+      Context {Tt Vt: Type}.
       
-    End Definitions. 
-
-    Section Sec.
-      
-      Context {T V: Type}.
-
-      
-
-      Lemma lemma2: forall (w: word), @terminal T V (to_phrase w).
+      Lemma word_remains_terminal:
+        forall word,
+          @terminal Tt Vt (to_phrase word).
       Proof.
         intros w.
         induction w.
@@ -105,20 +78,11 @@ Module Union.
           inversion IN; auto.
           subst s; exists a; auto.
       Qed.
-
-
-    End Sec.
-    
-
-    Variable Tt Vt: Type.
-
-    Let der := @der Tt.
-
-    Section Util.
       
       Lemma inner_in:
-        forall A (a : A) u v w,
-          In a (u ++ v ++ w) -> In a v \/ In a (u ++ w).
+        forall (A: Type) (a: A) u v w,
+          In a (u ++ v ++ w) ->
+          In a v \/ In a (u ++ w).
       Proof.
         intros.
         apply in_app_or in H.
@@ -133,9 +97,11 @@ Module Union.
         apply in_or_app.
         auto.
       Qed.
- 
+      
       Lemma inner_in_rev:
-        forall A (a : A) u v w, In a v \/ In a (u ++ w) -> In a (u ++ v ++ w).
+        forall (A: Type) (a: A) u v w,
+          In a v \/ In a (u ++ w) ->
+          In a (u ++ v ++ w).
       Proof.
         intros.
         destruct H.
@@ -150,61 +116,52 @@ Module Union.
         auto.
       Qed.
 
-
-      
       Lemma app_label_phrase:
-        forall u v n (p: @phrase Tt Vt),
-          u ++ v = label_phrase n p ->
-          exists u0 v0,
-            u0 ++ v0 = p /\
-            u = label_phrase n u0 /\
-            v = label_phrase n v0.
+        forall (lphrase1 lphrase2: @phrase Tt (labeled_Vt Vt)) (label: nat) (phrase: @phrase Tt Vt),
+          lphrase1 ++ lphrase2 = label_phrase label phrase ->
+          exists phrase1 phrase2,
+            phrase1 ++ phrase2 = phrase /\
+            lphrase1 = label_phrase label phrase1 /\
+            lphrase2 = label_phrase label phrase2.
       Proof.
-        intros.
-        revert p H.  
-        induction u; intros p H. 
+        intros u v n p EQ.
+        revert p EQ.  
+        induction u; intros p EQ. 
         { by exists [], p; repeat split. }
         { destruct p; first by done.
           destruct a.
           { destruct s; last by done.
-            injection H as H.
-            destruct (IHu p H0) as [u0 [v0 [H10 [H1 H2]]]]; clear IHu H0.
+            injection EQ as EQ.
+            destruct (IHu p H) as [u0 [v0 [H10 [H1 H2]]]]; clear IHu H.
             exists (Ts t :: u0), v0; repeat split; simpl.
-            - by rewrite H10 H.
+            - by rewrite H10 EQ.
             - by rewrite H1.
             - by done.
           }
           { destruct s; first by done.
             destruct v0, v1.
-            injection H as H.
-            destruct (IHu p H0) as [u1 [v1 [H10 [H1 H2]]]]; clear IHu H0.
+            injection EQ as EQ.
+            destruct (IHu p H) as [u1 [v1 [H10 [H1 H2]]]]; clear IHu H.
             exists ((Vs (V v0)) :: u1), v1; repeat split; simpl.
             - by rewrite H10.
-            - by rewrite H H1.
+            - by rewrite EQ H1.
             - by done. 
           }
         }
       Qed.
-
-
       
-      Lemma label_phrase_for_word :
-        forall (n : nat) (w : word),
-          @to_phrase  Tt (labeled_Vt Vt) w =
-          label_phrase n (to_phrase w).
+      Lemma label_phrase_for_word:
+        forall (label: nat) (word: word),
+          @to_phrase Tt (labeled_Vt Vt) word = label_phrase label (to_phrase word).
       Proof.
         intros.
-        induction w.
-        simpl.
-        reflexivity.
-        simpl.
-        rewrite IHw.
-        reflexivity.
+        induction word0; first by done.
+          by simpl; rewrite IHword0.
       Qed.
-
+      
       Lemma label_symbol_is_injective:
-        forall n (s1 s2 : @symbol Tt Vt),
-          label_symbol n s1 = label_symbol n s2 ->
+        forall (label: nat) (s1 s2: @symbol Tt Vt),
+          label_symbol label s1 = label_symbol label s2 ->
           s1 = s2.                                         
       Proof.
         intros n s1 s2 EQ.
@@ -213,12 +170,10 @@ Module Union.
           destruct v; destruct v0.
             by injection EQ as EQ; rewrite EQ.
       Qed.
-
-      
-      
-      Lemma label_app :
-        forall (n : nat) (p1 p2 : @phrase Tt Vt),
-          label_phrase n (p1 ++ p2) = label_phrase n p1 ++ label_phrase n p2.
+     
+      Lemma label_app:
+        forall (label: nat) (p1 p2: @phrase Tt Vt),
+          label_phrase label (p1 ++ p2) = label_phrase label p1 ++ label_phrase label p2.
       Proof.
         intros.
         induction p1.
@@ -226,52 +181,49 @@ Module Union.
         simpl.
         rewrite IHp1; reflexivity.
       Qed.
-
       
     End Util.
 
-    
-
-    
-    
-    (* Let phrase := @phrase Tt (labeled_Vt Vt). *)
-    Let l_grammar := @grammar Tt (labeled_Vt Vt).
-
-
-    
-    
-    
-
 
     (** * Forward *)
-    (** TODO: comment *)    
+    (** In this section we prove that derivability in one grammar from the
+        list implies derivability in the union-grammar. *)
+
+    (* Let Tt Vt be types of terminals and nonterminals correspondingly. *)
+    Variable Tt Vt: Type.
+
+    (* For simplicity, let's define some local names. *)
+    Let der := @der Tt.
+    Let var := @var Vt.
+    Let grammar := @grammar Tt Vt.
+    
     Section Forward.
 
       Lemma grammar_extention:
-        forall (grammar1 grammar2 : l_grammar) (var: var) (p : phrase),
-          der grammar2 var p ->
-          der (grammar1 ++ grammar2) var p.
+        forall {V: Type} grammar1 grammar2 var (phrase: @phrase Tt V),
+          der grammar2 var phrase ->
+          der (grammar1 ++ grammar2) var phrase.
       Proof.
-        intros ? ? ? ? DER.
+        intros V ? ? ? ? DER.
         induction DER.
         { by apply vDer. }
         { by apply rDer, in_or_app; right. }
         { by apply (replN (B := B)); [apply IHDER1 | apply IHDER2]. }
       Qed.
-      
-      Lemma same_union_0 :
+
+      Lemma der_in_grammar_implies_der_in_union_grammar_1:
         forall st grammar var grammars phrase,
           der grammar var phrase ->
           der (grammar_union ((st, grammar) :: grammars))
               (label_var (length grammars) var)
-              (@label_phrase Tt Vt (length grammars) phrase).
+              (@label_phrase Tt Vt (length grammars) phrase). 
       Proof.
         intros ? G ? ? ? DER.
         induction DER.
         { by destruct A; apply vDer. }
         { apply rDer; right.
           apply in_or_app; left.
-          induction G; first by done.
+          induction G; first by  done.
           move: H => [H|H].
           { by left; rewrite H; destruct A. }
           { by right; eapply IHG. }
@@ -286,42 +238,75 @@ Module Union.
               by apply IHDER1.
           }
         }
-      Qed.  
+      Qed.
 
+      Lemma der_in_grammar_implies_der_in_union_grammar_2:
+        forall var grammar grammars word,
+          grammar_to_language (var, grammar) word ->
+          grammar_to_language (V (start Vt), grammar_union (Tt:=Tt) ((var, grammar) :: grammars)) word.
+      Proof.
+        intros st g gs word DER.
+        unfold grammar_to_language; unfold grammar_to_language in DER.
+        rewrite (label_phrase_for_word (length gs)).  
+        rewrite -[label_phrase (Tt:=Tt) (Vt:=Vt) _ _]cats0 -[_ ++ []]cat0s.
+        apply (replN (B := (V (lV (length gs) st)))).
+        { by apply rDer; left. }
+        { by apply der_in_grammar_implies_der_in_union_grammar_1. }
+      Qed.
+
+      (* Now we can use two lemmas above to get the proof.
+         (1) We use induction by (list of) grammars.
+         (2) "Base" case is trivial.
+         (3) "Step" case splits into two subcases:
+           a) Case where we can use der_in_grammar_implies_der_in_union_grammar_2 lemma
+           b) Case where we can just use inductive hypothesis. *)      
       Lemma same_union_forward:
-        forall (grammars: seq (var * @grammar Tt Vt)) word,
+        forall (grammars: seq (var * grammar)) word,
           language_list_union (map grammar_to_language grammars) word ->
           grammar_to_language (V (start Vt), grammar_union grammars) word.
       Proof.
-        intros s_grammars word UNION.
-        induction s_grammars as [ |g gs]; first by done.
-        destruct UNION as [DER | UNION]; last first.
-        { apply grammar_extention. 
-          apply IHgs.
-            by apply UNION.
-        }
-        { destruct g as [st g]. 
-          unfold grammar_to_language; unfold grammar_to_language in DER.
-          rewrite (label_phrase_for_word (length gs)).  
-          rewrite -[label_phrase (Tt:=Tt) (Vt:=Vt) _ _]cats0 -[_ ++ []]cat0s.
-          apply (replN (B := (V (lV (length gs) st)))).
-          { by apply rDer; left. }
-          { by apply same_union_0. }
-        }
+        intros grammars word UNION.
+        induction grammars as [ |g gs]; first by done.
+        destruct UNION as [DER | UNION].
+        - destruct g as [st g].
+            by apply der_in_grammar_implies_der_in_union_grammar_2.
+        - by apply grammar_extention, IHgs.            
       Qed.
 
     End Forward.
 
     
     (** * Backward *)
-    (** TODO: comment *)
+    (** In this section we prove that derivability in the union-grammar implies 
+        derivability in one of the grammar from the list. *)
     Section Backward.
 
-      Section Section1.
+      (* In this section we prove several obvious properties of the updated grammar. *)
+      Section GeneralFacts.
         
-        Variable grammars: seq (@var Vt * @grammar Tt Vt).
+        Variable grammars: seq (var * grammar).
+        
+        Lemma der_in_union_simpl_grammar_implies_der_in_union_grammar:
+          forall var phrase,
+            der (label_list_of_grammars grammars) var phrase ->
+            der (grammar_union grammars) var phrase. 
+        Proof.
+          intros v p DER.
+          unfold label_list_of_grammars in *.
+          induction DER.
+          { by intros; apply vDer. }
+          { apply rDer.
+            induction grammars; first by done.
+            destruct a.
+            apply in_app_or in H.
+            destruct H as [H|H].
+            { apply in_or_app; left.
+                by right. }
+            { apply in_or_app; right.
+                by apply IHl0. } }
+          { by intros; apply (replN (B := B)); [apply IHDER1 | apply IHDER2]. }
+        Qed.              
 
-        (* TODO: fix proof *)
         Lemma updated_derivation_doesnot_contain_start_symbol:
           forall label var phrase,
             der (grammar_union grammars) (V (lV label var)) phrase ->
@@ -336,52 +321,29 @@ Module Union.
               by destruct IN. }
           { intros ? ? Heqst IN.
             induction grammars; first by done.
-            apply in_app_or in H.
+            apply in_app_or in H.  
             destruct H; last by done.
             destruct a as [v0 g].
-            simpl in H.
-            destruct H as [H|H].
-            rewrite Heqst in H.
-            discriminate.
-            induction g.
-            contradiction.
-            simpl in H.
-            destruct H.
-            destruct a.
-            destruct v1.
-            simpl in H.
+            destruct H as [H|H]; first by rewrite Heqst in H.
+            induction g; first by done.
+            destruct H; last by apply (IHg H).
+            destruct a as [[v1] p].
             injection H as H.
             rewrite -H0 in IN; clear H0.
-            induction p.
-            contradiction.
-            destruct IN.
-            destruct a.
-            discriminate.
-            destruct v2.
-            discriminate.
-            exact (IHp H0).
-            exact (IHg H).
+            induction p; first by done.
+            destruct IN; last by done.
+              by destruct a.
           }
           { intros n v0 ? ?. 
             apply inner_in in H1.
             destruct H1.
-            destruct B.
-            destruct l.
-            apply (IHder1 n v0 Heqst).
-            apply inner_in_rev.
-            auto.
-            apply (IHder2 n0 v1).
-            reflexivity.
-            exact H1.
-            apply (IHder1 n v0 Heqst).
-            apply inner_in_rev.
-            right.
-            exact H1. }
+            - destruct B as [[]].
+              + by eapply IHder1, inner_in_rev; eauto.
+              + by eapply IHder2. 
+            - by eapply IHder1, inner_in_rev; eauto.
+          }
         Qed.   
         
-        
-
-        (* TODO: comment *)
         Lemma derivability_without_start_rules:
           forall var phrase,
             var <> V (start Vt) -> 
@@ -416,28 +378,6 @@ Module Union.
           }
         Qed. 
 
-
-        Lemma der_in_union_simpl_grammar_implies_der_in_union_grammar:
-          forall var phrase,
-            der (label_list_of_grammars grammars) var phrase ->
-            der (grammar_union grammars) var phrase. 
-        Proof.
-          intros v p DER.
-          unfold label_list_of_grammars in *.
-          induction DER.
-          { by intros; apply vDer. }
-          { apply rDer.
-            induction grammars; first by done.
-            destruct a.
-            apply in_app_or in H.
-            destruct H as [H|H].
-            { apply in_or_app; left.
-                by right. }
-            { apply in_or_app; right.
-                by apply IHl0. } }
-          { by intros; apply (replN (B := B)); [apply IHDER1 | apply IHDER2]. }
-        Qed.            
-
         Lemma simpl_updated_derivation_doesnot_contain_start_symbol:
           forall label var phrase,
             der (label_list_of_grammars grammars) (V (lV label var)) phrase ->
@@ -448,16 +388,16 @@ Module Union.
             by eapply updated_derivation_doesnot_contain_start_symbol; eauto 2.
         Qed.
         
-      End Section1.
-   
-      (* <<< *)
-      Section TodoSection1.
+      End GeneralFacts.
 
+      (* In this section we prove that the derivability of a word in some _labeled_ grammar
+         implies that the word belongs to the union-language *)
+      Section DerivabilityInUnionGrammar.
         
-        (* TODO: name *)
-        Lemma not_start_in_update:
+        Lemma start_nonterminal_is_not_derivable_in_labeled_grammar:
           forall grammar label1 label2 var word1 word2,
-            ~ der (label_grammar_simpl label1 grammar) (V (lV label2 var)) (word1 ++ [Vs (V (start Vt))] ++ word2).
+            ~ der (label_grammar label1 grammar)
+              (V (lV label2 var)) (word1 ++ [Vs (V (start Vt))] ++ word2).
         Proof.
           have no_start_in_der_abdtract:
             forall G n0 v0 p,
@@ -508,16 +448,14 @@ Module Union.
             by destruct a.
         Qed.             
 
-        
-        (* TODO: fix proof *)
         Lemma labels_in_derivation_are_consistent:
-          forall (grammar: @grammar Tt Vt) label var phrase,
-            der (label_grammar_simpl label grammar) (V (lV label var)) phrase ->
+          forall (grammar: grammar) label var phrase,
+            der (label_grammar label grammar) (V (lV label var)) phrase ->
             forall label' var', In (Vs (V (lV label' var'))) phrase -> label = label'.
         Proof.
           intros GS label v0.
           have der_n_is_n_abstract :
-            forall (g0: grammar)
+            forall (g0: Definitions.grammar)
               (p: phrase),
               der g0 (V (lV label v0)) p ->
               (forall n0 v0 n v l, In (R (V (lV n0 v0)) l) g0 -> In (Vs (V (lV n v))) l -> n = n0) ->
@@ -565,7 +503,7 @@ Module Union.
             }
           }
           intros p ? n v ?.
-          apply Logic.eq_sym, der_n_is_n_abstract with (g0 := (label_grammar_simpl label GS)) (p := p) (v := v); try done.
+          apply Logic.eq_sym, der_n_is_n_abstract with (g0 := (label_grammar label GS)) (p := p) (v := v); try done.
           { intros.
             clear v H0 p H. 
             induction GS.
@@ -590,17 +528,16 @@ Module Union.
           { intros ? ? ? ? ?.
             remember (V (lV n0 v1)) as A.
             rewrite HeqA in H1.
-            eapply not_start_in_update with (word1 := u) (word2 := w); eauto 2.
+              by eapply start_nonterminal_is_not_derivable_in_labeled_grammar; eauto 2.
           }
         Qed.
         
-        (* TODO: fix proof *)
         Lemma update_grammar_simpl_is_injective:
-          forall (grammar: @grammar Tt Vt) var label phrase,
-            der (label_grammar_simpl label grammar) (V (lV label var)) (label_phrase label phrase) ->
+          forall (grammar: grammar) var label phrase,
+            der (label_grammar label grammar) (V (lV label var)) (label_phrase label phrase) ->
             der grammar var phrase.
         Proof.
-          intros grammar a n p ?.
+          intros grammar0 a n p ?.
           remember (label_phrase n p) as p0.
           remember (V (lV n a)) as A.
           revert a HeqA p Heqp0.
@@ -622,7 +559,7 @@ Module Union.
           { intros.
             apply rDer.
             rewrite Heqp0 in H. simpl in *. 
-            induction grammar; first by done.
+            induction grammar0; first by done.
             destruct H.
             { left.
               destruct a0.
@@ -631,7 +568,7 @@ Module Union.
               simpl in H.
               injection H as H.
               rewrite H.
-              clear A IHgrammar HeqA H.
+              clear A IHgrammar0 HeqA H.
               clear Heqp0.
               assert (p0 = p).
               revert p H0.
@@ -655,13 +592,13 @@ Module Union.
                 reflexivity.
             } 
             + right.
-              apply IHgrammar.
+              apply IHgrammar0.
               exact H. }
           { intros.
             destruct B.
             destruct l.
             exfalso.
-            eapply (not_start_in_update). rewrite HeqA in H. eauto 2.
+            eapply start_nonterminal_is_not_derivable_in_labeled_grammar. rewrite HeqA in H. eauto 2.
             apply app_label_phrase in Heqp0.
             destruct Heqp0 as [u1 H1].
             destruct H1 as [t0 H1].
@@ -698,14 +635,14 @@ Module Union.
             exact H4. }
         Qed.        
         
-        Lemma derivability_in_grammar_implies_derivability_in_grammar_union:
-          forall (grammars: seq (var * @grammar Tt Vt)) grammar start label word,           
+        Lemma derivability_in_grammar_implies_derivability_in_union_grammar:
+          forall (grammars: seq (var * grammar)) grammar start label word,           
             In (start, grammar) grammars ->
-            der (label_grammar_simpl label grammar) (V (lV label start)) (to_phrase word) ->
+            der (label_grammar label grammar) (V (lV label start)) (to_phrase word) ->
             language_list_union (map grammar_to_language grammars) word.
         Proof.
           intros.
-          induction grammars; first by done.
+          induction grammars; first by done. 
           destruct H; [left | right].
           { rewrite H; simpl.
             eapply update_grammar_simpl_is_injective with (var := start0) (label := label).
@@ -713,16 +650,16 @@ Module Union.
           { by auto 2. }
         Qed.
 
+      End DerivabilityInUnionGrammar.
 
-
-      End TodoSection1.
-
-      (* In this section we prove that there exists grammar with appropriate label. *)
+      (* Suppose we have a phrase that we derived in a union-grammar.
+         In this section we prove that there are only two options (1) either it is the 
+         starting nonterminal, or (2) we can choose a grammar from the union-list in 
+         which it is possible to derive this phrase. *)
       Section ChooseGrammarWithCorrectLabel.
         
-        (* TODO: fix proof *)
         Lemma choose_labeled_grammar:
-          forall (grammars: seq (var * @grammar Tt Vt)) phrase,
+          forall (grammars: seq (var * grammar)) phrase,
             der (grammar_union grammars) (V (start Vt)) phrase ->
             phrase = [Vs (V (start Vt))] \/
             exists grammar var grammars1 grammars2,
@@ -807,11 +744,13 @@ Module Union.
 
       End ChooseGrammarWithCorrectLabel.
       
-      (* In this section we prove that we can remove all grammars with "wrong" label. *)
+      (* In this section we prove that we can remove all grammars with "wrong" label. In other words, 
+         if we have a labeled nonterminal, it is not possible to derive something with different 
+         label. So, we can simply remove grammars with different labels. *)
       Section CutGrammars.
 
         Lemma labels_in_derivation_are_consistent_2:
-          forall (grammars : seq (@var Vt * grammar)) label var phrase,
+          forall (grammars: seq (var * grammar)) label var phrase,
             der (label_list_of_grammars grammars) (V (lV label var)) phrase ->
             forall label' var', In (Vs (V (lV label' var'))) phrase -> label = label'.
         Proof.
@@ -874,7 +813,7 @@ Module Union.
 
         
         Lemma cut_head:
-          forall grammar grammars label (var: @var Vt) (phrase: @phrase Tt _), 
+          forall grammar grammars label (var: var) phrase, 
             length grammars <> label ->
             der (label_list_of_grammars (grammar::grammars)) (V (lV label var)) phrase ->
             der (label_list_of_grammars           grammars)  (V (lV label var)) phrase.
@@ -933,7 +872,7 @@ Module Union.
 
 
         Lemma label_is_bounded_by_grammar_union_length: 
-          forall (grammars: seq (var * @grammar Tt Vt)) label var phrase,
+          forall (grammars: seq (var * grammar)) label var phrase,
             length grammars <= label ->
             ~ In (R (V (lV label var)) phrase) (label_list_of_grammars grammars).
         Proof.
@@ -964,10 +903,10 @@ Module Union.
         Qed.
         
         Lemma cut_tail:
-          forall grammar grammars label (var: @var Vt) v p,
+          forall (grammar: grammar) grammars label var v p,
             length grammars = label ->
             der (label_list_of_grammars ((var, grammar)::grammars)) (V (lV label v)) p ->
-            der (label_grammar_simpl label grammar) (V (lV label v)) p.
+            der (label_grammar label grammar) (V (lV label v)) p.
         Proof.
           intros g r; intros. 
           remember (V (lV label v)) as st.
@@ -1010,12 +949,12 @@ Module Union.
         Qed.
         
         Lemma cut_grammar:
-          forall grammar grammars1 grammars2 label (var: @var Vt) (phrase: @phrase Tt _), 
+          forall (grammar: grammar) grammars1 grammars2 label var phrase, 
             length grammars2 = label ->
             der (label_list_of_grammars (grammars1 ++ [(var,grammar)] ++ grammars2)) (V (lV label var)) phrase ->
-            der (label_grammar_simpl label grammar) (V (lV label var)) phrase.
+            der (label_grammar label grammar) (V (lV label var)) phrase.
         Proof.
-          intros grammar ? ? ? ? ? ? ?.
+          intros grammar0 ? ? ? ? ? ? ?.
           induction grammars1.
           { by rewrite cat0s cat1s in H0; apply cut_tail in H0. }
           { rewrite -cat1s in H0.
@@ -1031,10 +970,15 @@ Module Union.
 
       End CutGrammars.
 
-      (* TODO: comment *)
-      (* Now we can use choose_labeled_grammar lemma to make step into the correct grammar of the grammar union. *)
+      (* Now we can use all the lemmas above to get the proof. 
+         (1) We use choose_labeled_grammar lemma to make step into the correct grammar of the union-grammar
+         (2) Next, lemma derivability_without_start_rules which states that we can make drop all the 
+              rules that lead from the starting nonterminal to the other grammars
+         (3) Next, we can use the cut_grammar lemma to get rid of grammars with the wrong label
+         (4) And finally, we apply derivability_in_grammar_implies_derivability_in_union_grammar lemma
+              to "unlabel" the resulting grammar. *)
       Lemma same_union_backward:
-        forall (grammars: seq (var * @grammar Tt Vt)) word,
+        forall (grammars: seq (var * grammar)) word,
           grammar_to_language (V (start Vt), grammar_union grammars) word ->
           language_list_union (map grammar_to_language grammars) word.
       Proof.
@@ -1043,20 +987,19 @@ Module Union.
         destruct H1; first by exfalso; destruct word. 
         clear DER; move: H => [g [a [u [v [H H0]]]]].
         apply derivability_without_start_rules in H0; last by done.
-        eapply derivability_in_grammar_implies_derivability_in_grammar_union with (label := (length v)); eauto 2.
-        - rewrite -H -cat1s.
-            by apply in_or_app; right; apply in_or_app; left. 
-        - rewrite -H -cat1s in H0.
-            by apply cut_grammar in H0.
+        rewrite -H in H0; apply cut_grammar in H0; last by done.
+        rewrite -H. 
+        eapply derivability_in_grammar_implies_derivability_in_union_grammar with (label := (length v)); eauto 2.
+          by rewrite -cat1s; apply in_or_app; right; apply in_or_app; left. 
       Qed.
       
     End Backward.
 
     (** * Main Theorem *)
-    (** TODO: comment *)
-    Section MainLemma.
+    (** In this section we prove the equivalence in two formulations. *)
+    Section MainTheorem1.
 
-      Variable grammars: seq (@var Vt * @grammar Tt Vt).
+      Variable grammars: seq (var * grammar).
       
       Let l1 := language_list_union (map grammar_to_language grammars).
       Let l2 := grammar_to_language (V (start Vt), grammar_union grammars).
@@ -1069,13 +1012,13 @@ Module Union.
         - apply same_union_backward.
       Qed.
 
-    End MainLemma.
+    End MainTheorem1.
 
-    Section MainLemma1.
+    Section MainTheorem2.
 
-      Variable grammars: seq (@var Vt * @grammar Tt Vt).
+      Variable grammars: seq (var * grammar).
       
-      Lemma correct_union_2:
+      Theorem correct_union_2:
         forall word, 
           Derivation.language (grammar_union grammars) (V (start Vt)) (to_phrase word) <->
           exists s_l, Derivation.language (snd s_l) (fst s_l) (to_phrase word) /\ In s_l grammars.
@@ -1085,12 +1028,12 @@ Module Union.
           forall ls w,
             language_list_union [seq grammar_to_language (Tt:=Tt) i | i <- ls] w <->
             exists s_g, In s_g ls /\ Derivation.language s_g.2 s_g.1 (to_phrase w).
-        { clear; intros T ls w; split; intros H.
+        { intros T ls w; split; intros H.
           { induction ls; first by done.
             move: H => [DER|H].
             { exists a; split; first by left.
               destruct a; simpl in *.
-                by split; last apply lemma2. 
+                by split; last eapply word_remains_terminal. 
             }
             { apply IHls in H; clear IHls.
               move: H => [[s g] [EL [DER TER]]].
@@ -1119,12 +1062,12 @@ Module Union.
           split; first by done.
           move: LANG => [DER TER].
           induction word0; first by done.
-            by apply lemma2.
+            by apply word_remains_terminal.
         }
       Qed.      
       
-    End MainLemma1.
-    
-  End Big.
-   
+    End MainTheorem2.
+
+  End Lemmas.
+  
 End Union.

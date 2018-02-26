@@ -1,10 +1,11 @@
 Require Import List.
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice fintype bigop fingraph finfun finset.
 
 (* Add LoadPath "~/Git/YC_in_Coq/". *)
 Require Import fl.cfg.Definitions.
  
 Module Base.
- 
+  
   Import Definitions.
   
   Section Definitions. 
@@ -26,6 +27,17 @@ Module Base.
     Notation "l1 [==] l2" := (language_eq l1 l2) (at level 90).
 
   End Definitions.
+
+  Section Kek.
+
+    Fixpoint to_phrase {T V: Type} (w: word): @phrase T V :=
+      match w with
+        | s::sx => Ts s :: to_phrase sx
+        | _ => [::]
+      end.
+    
+  End Kek.
+
   
   Section Lemmas.
 
