@@ -62,7 +62,7 @@ Module Union.
   Section Lemmas.
 
     (** * Util *)
-    (** In this section we prove a few usefull facts about the union-related functions. *)        
+    (** In this section we prove a few useful facts about the union-related functions. *)        
     Section Util.
       
       Context {Tt Vt: Type}.
@@ -78,42 +78,28 @@ Module Union.
           inversion IN; auto.
           subst s; exists a; auto.
       Qed.
-      
-      Lemma inner_in:
+
+      Lemma inner:
         forall (A: Type) (a: A) u v w,
-          In a (u ++ v ++ w) ->
-          In a v \/ In a (u ++ w).
-      Proof.
-        intros.
-        apply in_app_or in H.
-        destruct H.
-        right.
-        apply in_or_app.
-        auto.
-        apply in_app_or in H.
-        destruct H.
-        auto.
-        right.
-        apply in_or_app.
-        auto.
-      Qed.
-      
-      Lemma inner_in_rev:
-        forall (A: Type) (a: A) u v w,
-          In a v \/ In a (u ++ w) ->
+          In a v \/ In a (u ++ w) <->
           In a (u ++ v ++ w).
       Proof.
-        intros.
-        destruct H.
-        apply in_or_app.
-        right.
-        apply in_or_app.
-        left.
-        exact H.
-        apply in_app_or in H.
-        destruct H.
-        auto.
-        auto.
+        intros A a u v w; split; intros IN.
+        { destruct IN as [IN|IN].
+          { apply in_or_app; right.
+              by apply in_or_app; left. }
+          { apply in_app_or in IN.
+              by destruct IN as [IN|IN]; auto. }
+        }
+        { apply in_app_or in IN.
+          destruct IN as [IN|IN].
+          { by right; apply in_or_app; auto. }
+          { apply in_app_or in IN.
+            destruct IN as [IN|IN].
+            { by left. }
+            { by right; apply in_or_app; auto. }
+          }
+        }
       Qed.
 
       Lemma app_label_phrase:
@@ -335,12 +321,12 @@ Module Union.
               by destruct a.
           }
           { intros n v0 ? ?. 
-            apply inner_in in H1.
+            apply inner in H1.
             destruct H1.
             - destruct B as [[]].
-              + by eapply IHder1, inner_in_rev; eauto.
+              + by eapply IHder1, inner; eauto.
               + by eapply IHder2. 
-            - by eapply IHder1, inner_in_rev; eauto.
+            - by eapply IHder1, inner; eauto.
           }
         Qed.   
         
@@ -373,7 +359,7 @@ Module Union.
               exfalso.
               rewrite Heqst in DER1.
               eapply updated_derivation_doesnot_contain_start_symbol; eauto 2.
-                by apply inner_in_rev; eauto 2.
+                by apply inner; eauto 2.
             }
           }
         Qed. 
@@ -417,19 +403,19 @@ Module Union.
               apply (no_start_rule A l H).
               exact H0.
             - intros.
-              apply inner_in in H0.
+              apply inner in H0.
               destruct H0.
               destruct B.
               destruct l.
               apply IHder1 with (n0:=n0) (v0:=v0).
-              apply inner_in_rev.
+              apply inner.
               auto.
               exact Heqst.
               apply IHder2 with (n0:=n) (v0:=v1).
               exact H0.
               reflexivity.
               apply IHder1 with (n0:=n0) (v0:=v0).
-              apply inner_in_rev.
+              apply inner.
               right.
               exact H0.
               exact Heqst.
@@ -475,7 +461,7 @@ Module Union.
                 by eapply H_g0; eauto 2. 
             }
             { intros n0 v0 n v1 EQ IN.
-              apply inner_in in IN.
+              apply inner in IN.
               destruct IN.
               { destruct B.
                 destruct l.
@@ -492,14 +478,14 @@ Module Union.
                   assert (n1 = n0).
                   apply (IHder1 n0 v0 n1 v2).
                   exact EQ.
-                  apply inner_in_rev.
+                  apply inner.
                   auto.
                   rewrite <- H3.
                   exact H2.
                 }
               }
               { apply (IHder1 n0 v0 n v1); first by done.
-                  by apply inner_in_rev; eauto. }
+                  by apply inner; eauto. }
             }
           }
           intros p ? n v ?.
@@ -615,7 +601,7 @@ Module Union.
             assert (n0 = n).
             { rewrite HeqA in H.
               apply Logic.eq_sym, (labels_in_derivation_are_consistent H) with (var' := v0).
-              apply inner_in_rev.
+              apply inner.
               auto.
             }
             apply (replN (B := v0)).
@@ -785,7 +771,7 @@ Module Union.
             auto.
             auto. } 
           { intros n0 v0 v1 n ? ?. 
-            apply inner_in in H1.
+            apply inner in H1.
             destruct H1.
             destruct B.
             destruct l0.
@@ -793,7 +779,7 @@ Module Union.
             eapply simpl_updated_derivation_doesnot_contain_start_symbol in H.
             exfalso.
             apply H.
-            eapply inner_in_rev; eauto 2.
+            eapply inner; eauto 2.
             assert (n = n1).
             apply Logic.eq_sym, (IHder2 n1 v2 v1).
             reflexivity.
@@ -801,13 +787,13 @@ Module Union.
             assert (n1 = n0).
             apply Logic.eq_sym, (IHder1 n0 v0 v2).
             exact Heqst.
-            apply inner_in_rev.
+            apply inner.
             auto.
             rewrite <- H3.
               by apply Logic.eq_sym. 
               apply (IHder1 n0 v0 v1).
               exact Heqst.
-              apply inner_in_rev.
+              apply inner.
               auto. }
         Qed.         
 
@@ -849,7 +835,7 @@ Module Union.
             + exfalso.
               rewrite Heqst in DER1.
               apply (simpl_updated_derivation_doesnot_contain_start_symbol DER1).  
-              apply inner_in_rev.
+              apply inner.
               auto.
             + apply (replN (B := (V (lV n v1)))).
               apply (IHDER1 n0 v0).
@@ -860,7 +846,7 @@ Module Union.
               assert (n = n0).
               rewrite Heqst in DER1. 
               apply Logic.eq_sym, (labels_in_derivation_are_consistent_2 DER1) with (var' := v1) .
-              apply inner_in_rev.
+              apply inner.
               left.
               auto.
               rewrite H.
@@ -930,7 +916,7 @@ Module Union.
             exfalso.
             rewrite Heqst in H0_.
             apply (simpl_updated_derivation_doesnot_contain_start_symbol H0_).  
-            apply inner_in_rev.
+            apply inner.
             auto. 
             apply (replN (B := (V (lV n v1)))).
             apply (IHder1 label v0).
@@ -941,7 +927,7 @@ Module Union.
             assert (n = label).
             rewrite Heqst in H0_.
             apply Logic.eq_sym, (labels_in_derivation_are_consistent_2 H0_ (var' :=v1)).
-            apply inner_in_rev.
+            apply inner.
             auto.
             rewrite H0.
             auto.
@@ -1069,5 +1055,5 @@ Module Union.
     End MainTheorem2.
 
   End Lemmas.
-  
+   
 End Union.
