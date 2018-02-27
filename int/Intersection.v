@@ -614,11 +614,12 @@ Module Intersection.
         apply in_flat_map in EL.
         destruct EL as [rule [_ EL]].
         destruct rule as [v rhs].
-        destruct rhs; simpl in *. contradiction.
+        destruct rhs; first by done.
         destruct s; simpl in *.
         { destruct rhs; [| inversion EL].
           unfold convert_terminal_rule in *.
-          apply in_map_iff in EL; destruct EL as [st [EQ _]]; inversion EQ; auto. }
+          apply in_map_iff in EL; destruct EL as [st [EQ _]].
+            by inversion EQ. }
         { destruct rhs; [inversion EL | ].
           destruct s; [ inversion EL | ].
           destruct rhs; [ | inversion EL].
@@ -628,7 +629,7 @@ Module Intersection.
           apply in_flat_map in EL. destruct EL as [st1 [_ EL]].
           apply in_flat_map in EL; destruct EL as [st2 [_ EL]].
           apply in_map_iff in EL; destruct EL as [st3 [EQ _]].
-          inversion EQ; subst; auto. }
+            by inversion EQ. }
       Qed.
       
       Corollary consistensy_of_triple_nonterm_rules':
@@ -657,22 +658,30 @@ Module Intersection.
       
     End ConsistensyOfTripleRules.
 
-    (** * TODO: name *)
-    (** TODO: comment *)
-    Section Main.
+    (** * Main implications *)
+    (** In this section we prove two main lemmas. Derivability in an initial grammar 
+        and a dfa implies a derivability in the triple (intersection) grammar. And the other way
+        around a derivability in a triple grammar implies a derivability in the initial grammar 
+        and the dfa. *)
+    Section MainImplications.
 
       Variable G: @grammar Tt Vt.
       Hypothesis H_G_in_chomsky_normal_form: chomsky G.
       Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible. 
 
-      (* TODO: comment *)
-      Hypothesis F1: DfaState * @var Vt * DfaState -> Vt.
-      Hypothesis F2: Vt -> DfaState * @var Vt * DfaState.
+      (* We need two fictive functions for changing types. *)
+      Hypothesis F1: DfaState * @var Vt * DfaState -> Vt. 
+      Hypothesis F2: Vt -> DfaState * @var Vt * DfaState. 
 
-      (** TODO: comment *)
+      (* It this section we prove that derivability in an initial grammar 
+         and a dfa implies a derivability in the triple grammar. *)
       Section MainForward.
 
-        (* TODO: comment *)
+        (* Note that we cannot use simple induction by derivation in grammar G, in this 
+           case we will get a phrase (list of terminals and nonterminals) instead of a word. 
+           Therefore we should use another way to use induction. For grammar in chomsky 
+           normal form it is possible (see the file chomsky_induction). Briefly, we can 
+           split the word into two subwords, each of which can be derived from some nonterminal. *)
         Theorem der_in_initial_grammar_and_dfa_implies_der_in_triple_grammar:
           forall (next: dfa_rule) (r: var) (from to: DfaState) (word: _),
             der G r (to_phrase word) ->
@@ -715,11 +724,11 @@ Module Intersection.
           { by apply word_remains_terminal. }
         Qed.
 
-        (* TODO: comment *)
+        (* We use the lemma above to prove this lemma. *)
         Theorem main_forward:
           forall sdfa var word,
-            (s_dfa_language sdfa) word /\ language G var (to_phrase word) ->
-            (language (convert_grammar G sdfa) (V (s_start sdfa, var, s_final sdfa)) (to_phrase word)).
+            s_dfa_language sdfa word /\ language G var (to_phrase word) ->
+            language (convert_grammar G sdfa) (V (s_start sdfa, var, s_final sdfa)) (to_phrase word).
         Proof.
           intros ? ? ? INT.
           destruct INT as [DFA [DER TER]].
@@ -728,15 +737,19 @@ Module Intersection.
         
       End MainForward.
 
-      (** TODO: comment *)
+      (* In this section we prove that derivability in a triple grammar 
+         implies derivability in the initial grammar and the dfa. *)
       Section MainBackward.
 
-        (* TODO: comment *)
+        (* In this section we prove that derivability in a triple grammar 
+           implies derivability in the dfa. *)
         Section DerivabilityInTripleGrammarImpliesAcceptanceInDFA.
 
           Variable next: @dfa_rule DfaState Tt.
           Variable from to: DfaState.
-          
+
+          (* Here we also should use "chomsky_induction". Proof is quite similar to the proof 
+             of the der_in_initial_grammar_and_dfa_implies_der_in_triple_grammar lemma. *)
           Lemma der_in_triple_grammar_implies_dfa_accepts':
             forall var word,           
               der (convert_rules G next) (V (from, var, to)) (to_phrase word) ->     
@@ -774,7 +787,6 @@ Module Intersection.
             { by apply word_remains_terminal. }
           Qed.
 
-          (* TODO: comment *)
           Lemma der_in_triple_grammar_implies_dfa_accepts:
             forall var word,
               der (convert_rules G next) (V (from, var , to)) (to_phrase word) ->
@@ -790,7 +802,8 @@ Module Intersection.
           
         End DerivabilityInTripleGrammarImpliesAcceptanceInDFA.
 
-        (* TODO: comment *)
+        (* In this section we prove that derivability in a triple grammar 
+           implies derivability in the initial grammar.  *)
         Section DerivabilityInTripleGrammarImpliesDerivabilityInInitialGrammar.
 
           Variable next: @dfa_rule DfaState Tt.
@@ -823,7 +836,6 @@ Module Intersection.
             { by apply word_remains_terminal. }
           Qed.
 
-          (* TODO: comment *)
           Lemma der_in_triple_gr_implies_der_in_initial_gr:
             forall (s_start s_final: DfaState) (grammar_start: _) (word: word),  
               der (convert_rules G next) (V (s_start, grammar_start, s_final)) (to_phrase word) ->
@@ -843,7 +855,7 @@ Module Intersection.
           forall sdfa var word,
             language (convert_grammar G sdfa) (V (s_start sdfa, var, s_final sdfa)) (to_phrase word) ->
             s_dfa_language sdfa word /\ language G var (to_phrase word).
-        Proof.
+        Proof. 
           intros ? ? ? TR.
           destruct TR as [DER TER]. 
           unfold convert_grammar in DER.
@@ -858,7 +870,7 @@ Module Intersection.
 
       End MainBackward. 
       
-    End Main.
+    End MainImplications.
 
   End Lemmas.
   
@@ -867,24 +879,20 @@ Module Intersection.
   Section Main.
     
     Context {Terminal Nonterminal: eqType}.
-
-    (* TODO: comment *)
     Hypothesis H_T_eq_dec: eq_dec Terminal.
     Hypothesis H_V_eq_dec: eq_dec Nonterminal.
 
-    (* TODO: comment *)
     Variables (TToNat: Terminal -> nat) (UToNat: Nonterminal -> nat) (NatToU: nat -> Nonterminal).
     Hypothesis bijection: forall x : nat, UToNat (NatToU x) = x.
 
-    (* TODO: comment *)
     Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible.
     
-    (* TODO: comment *)
+    (* Now, let n be the number of states in a dfa. And let list_of_states be a list of these states. *)    
     Variable number_of_states: nat.
     Let DfaState: Type := t number_of_states.
     Let list_of_states: list DfaState := values_list_gen number_of_states.
 
-    (* TODO: comment *)
+    (* Consider an arbitrary dfa with n states. *)
     Variable dfa: @dfa DfaState Terminal. 
 
     (* Consider an arbitrary grammar G with start symbol S. *)
@@ -892,7 +900,7 @@ Module Intersection.
     Variable S: @var Nonterminal.
     Hypothesis H_S_el_of_G: Vs S el dom G.
 
-    (* TODO: comment *)
+    (* We prove that there exists grammar intersection. *)
     Theorem grammar_of_intersection_exists:
       exists (NewNonterminal: Type) (IntersectionGrammar: @grammar Terminal NewNonterminal) St,
         forall word,
@@ -1095,4 +1103,3 @@ Module Intersection.
   End Main.
   
 End Intersection.
-
