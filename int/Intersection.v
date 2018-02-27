@@ -212,8 +212,7 @@ Module Intersection.
 
     End DFAListOfStates.
 
-    (* Now, let n be the number of states in a dfa. And let list_of_states be a list of 
-       these states. The dfa itself we will use later in this file. *)
+    (* Consider some list of dfa states. The dfa itself we will use later in this file. *)
     Variable number_of_states: nat.
     Let DfaState: Type := t number_of_states.
     Let list_of_states: list DfaState := values_list_gen number_of_states.
@@ -673,8 +672,6 @@ Module Intersection.
          implies derivability in the initial grammar and the dfa. *)
       Section MainBackward.
 
-        (* In this section we prove that derivability in a triple grammar 
-           implies derivability in the dfa. *)
         Section DerivabilityInTripleGrammarImpliesAcceptanceInDFA.
 
           Variable next: @dfa_rule DfaState Tt.
@@ -734,8 +731,6 @@ Module Intersection.
           
         End DerivabilityInTripleGrammarImpliesAcceptanceInDFA.
 
-        (* In this section we prove that derivability in a triple grammar 
-           implies derivability in the initial grammar.  *)
         Section DerivabilityInTripleGrammarImpliesDerivabilityInInitialGrammar.
 
           Variable next: @dfa_rule DfaState Tt.
@@ -819,7 +814,6 @@ Module Intersection.
 
     Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible.
     
-    (* Now, let n be the number of states in a dfa. And let list_of_states be a list of these states. *)    
     Variable number_of_states: nat.
     Let DfaState: Type := t number_of_states.
     Let list_of_states: list DfaState := values_list_gen number_of_states.
