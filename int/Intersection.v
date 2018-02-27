@@ -12,7 +12,6 @@ Module Intersection.
   Import ListNotations Dec_Empty Base Symbols DFA Base2.Base
          ChomskyInduction Definitions Derivation Chomsky.
 
-  (* TODO: move/del *)
   (* Feed tactic -- exploit with multiple arguments.
      (taken from http://comments.gmane.org/gmane.science.mathematics.logic.coq.club/7013) *)
   Ltac feed H :=
@@ -28,11 +27,8 @@ Module Intersection.
       | (S ?m) => feed H ; [| feed_n m H]
     end.
   
-  (* TODO: del *)
-  Notation "x 'el' A" := (In x A) (at level 70). 
-
   (** * Util *)
-  (** In this section we prove TODO. *)      
+  (** In this section we prove a few useful facts. *)      
   Section Util.
  
     Section Proections.
@@ -59,8 +55,7 @@ Module Intersection.
             | _ => []
           end.
 
-        (* TODO: name *)
-        Lemma lemma3:
+        Lemma to_word_to_phraseK:
           forall word, to_word (to_phrase word) = word.
         Proof.
           intros w.
@@ -97,9 +92,8 @@ Module Intersection.
       Context {T V: Type}.
       
       Variable word word1 word2: @phrase T V.
-
-      (* TODO: name *)
-      Lemma lemma2:
+      
+      Lemma word_remains_terminal:
         forall word, terminal (@to_phrase T V word).
       Proof.
         intros w.
@@ -110,8 +104,7 @@ Module Intersection.
           subst s; exists a; auto.
       Qed.       
 
-      (* TODO: name *)
-      Lemma lemma23:
+      Lemma to_word_cat:
         terminal word1 ->
         terminal word2 ->
         to_word (word1 ++ word2) = to_word word1 ++ to_word word2.
@@ -149,7 +142,6 @@ Module Intersection.
       Variable S: @var Vt.
       Hypothesis H_S_el_of_G: Vs S el dom G.
 
-      (* TODO: comment *)
       Let normalize G := @normalize Tt Vt _ _ TToNat UToNat NatToU bijection G. 
       
       Lemma epsilon_is_not_derivable_in_normalized_grammar:
@@ -193,9 +185,8 @@ Module Intersection.
     
   End Util.
 
-
   (** * Canonical structures *)
-  (** In this section we prove TODO. *)
+  (** In this section we prove that Ter is an instance of some canonical structures. *)
   Section CanonicalStructureTer.
     
     Section EqTer.
@@ -266,10 +257,10 @@ Module Intersection.
   (** In this section we define a function that creates a intersection-grammar and prove the necessary lemmas. *)
   Section Lemmas. 
     
-    (* TODO: comment *)
     Variable Tt Vt: Type.
 
-    (* TODO: comment *)
+    (* In this section we define a function which generates a list of states. 
+       This list of states represents a set of states of a dfa. *)
     Section DFAListOfStates.
       
       Fixpoint values_list_gen number_of_states: list (t number_of_states) :=
@@ -289,7 +280,8 @@ Module Intersection.
 
     End DFAListOfStates.
 
-    (* TODO: comment *)
+    (* Now, let n be the number of states in a dfa. And let list_of_states be a list of 
+       these states. The dfa itself we will use later in this file. *)
     Variable number_of_states: nat.
     Let DfaState: Type := t number_of_states.
     Let list_of_states: list DfaState := values_list_gen number_of_states.
@@ -323,19 +315,25 @@ Module Intersection.
       Definition convert_rules (rules: list rule) (next: _): list rule :=
         flat_map (convert_rule next) rules.
       
-      Definition convert_grammar (g: grammar) (d: s_dfa): @grammar _ (_ * _ * _):=
-        convert_rules g (s_next d). 
+      Definition convert_grammar (g: grammar) (s_dfa: s_dfa): @grammar _ (_ * _ * _):=
+        convert_rules g (s_next s_dfa). 
 
     End Conversion.
 
-    (** Next, we TODO.  *)    
+    (** Next, we prove a few useful lemmas about the conversion function. *)    
     (* In this section we prove that if an initial grammar contains some terminal rule, 
        then the triple grammar contains the corresponding triple rule. We can simply get
        the triple rule using application of the "convert_rule" function. *)
     Section ForwardTerminalRuleInclusion.
       
       Variable G: @grammar Tt Vt. 
-      
+
+      (* We prove the lemma using the induction by the grammar (list of rules). 
+         (1) "Base" case is trivial (G = []).
+         (2) "Step" case splits into two subcases (G ~> a::G):
+           a) R r [Ts te] = a: We just unfold definition convert_rules, 
+               after some evaluation we will get the identity.
+           b) R r [Ts te] el G: We use induction hypothesis. *)
       Lemma forward_terminal_rule_inclusion:
         forall (r: var) (te: ter) (next: _) (from to: DfaState),
           R r [Ts te] el G ->  
@@ -345,14 +343,13 @@ Module Intersection.
         intros r te next from to EL STEP.
         induction G; first by done.
         destruct EL as [EQ | EL].
-        - subst a.
+        - clear IHg. subst a.
           apply in_or_app; left; simpl.
           apply in_map_iff.
-          exists from; subst to.
-          split; [reflexivity | apply all_values_in_list].
-        - simpl.
-          apply in_or_app; right.
-          auto.
+          exists from; split.
+          + by rewrite STEP.
+          + by apply all_values_in_list.
+        - by simpl; apply in_or_app; right; auto.
       Qed.
 
     End ForwardTerminalRuleInclusion.
@@ -416,13 +413,15 @@ Module Intersection.
         apply IHvals.
         apply H.
       Qed.
-      
+
+      (* We can prove this lemma simply by induction by grammar 
+         (as in the case of the lemma forward_terminal_rule_inclusion) *)
       Lemma forward_nonterminal_rule_inclusion:
         R r [Vs r1; Vs r2] el G ->
         R (V (from, r, to)) [Vs (V (from, r1, mid)); Vs (V (mid, r2, to))] el convert_rules G next.
       Proof.
         intros EL.
-        induction G; [auto | ].
+        induction G; first by done.
         destruct EL as [ | EL]; subst.
         { clear IHg.
           apply in_or_app; left; simpl.
@@ -451,7 +450,7 @@ Module Intersection.
       Variable next: @dfa_rule DfaState Tt.
 
       (* For simplicity, let's define a local name. *)
-      Let projection (s: @symbol Tt (DfaState * var * DfaState)) : @symbol Tt Vt :=
+      Let projection (s: @symbol Tt (DfaState * var * DfaState)): @symbol Tt Vt :=
         match s with
           | Vs (V (_, r, _)) => Vs r
           | Ts (T r) => Ts (T r)
@@ -520,7 +519,13 @@ Module Intersection.
 
       Variable next: @dfa_rule DfaState Tt.      
 
-      (* TODO: explain? *)
+      (* Note that the initial grammar is in chomsky normal form. 
+         After the transformation:
+         1) There are no (new) epsilon rules
+         2) The terminal rules remain terminal and uniform 
+             (see the definition of grammar to be in chomsky normal form)
+         3) Rules remain in binarize form
+         4) And unitfree. *)
       Lemma remains_chomsky:
         chomsky (convert_rules G next).
       Proof.
@@ -531,7 +536,8 @@ Module Intersection.
           apply backward_rule_inclusion in EL; simpl in *.
             by apply EF in EL.
         }
-        { intros v rhs EL t TEL.
+        { unfold Separate.uniform.
+          intros v rhs EL t TEL.
           destruct t as [t].
           unfold Separate.uniform in UN.
           destruct v as [[[from v] to]].
@@ -546,13 +552,14 @@ Module Intersection.
               by destruct TEL as [TEL | TEL]; inversion TEL.
           + apply in_map_iff.
               by exists (Ts (T t)); split; auto. }
-        { intros v phs EL.
+        { unfold Binarize.binary.
+          intros v phs EL.
           destruct v as [[[from v] to]].
           apply backward_rule_inclusion in EL.
           apply BIN in EL.
             by rewrite map_length in EL.
         }
-        { intros v CONTR.
+        { unfold ElimU.unitfree. intros v CONTR.
           destruct v as [[[from r] to]].
           destruct CONTR as [[[[from' r'] to']] EL].
           apply backward_rule_inclusion in EL; simpl in *.
@@ -567,7 +574,7 @@ Module Intersection.
     Section ConsistensyOfTripleRules.
 
       Variable G: @grammar Tt Vt.
-      Variable next: @dfa_rule DfaState Tt. (* TODO: name *)
+      Variable next: @dfa_rule DfaState Tt.
 
       Lemma consistensy_of_triple_nonterm_rules:
         forall from from1 from2 r r1 r2 to to1 to2,
@@ -584,7 +591,7 @@ Module Intersection.
         destruct s; simpl in *.
         { destruct rhs; [| inversion EL].
           unfold convert_terminal_rule in *.
-          apply in_map_iff in EL; destruct EL as [st [EQ _]]; inversion EQ. }
+            by apply in_map_iff in EL; destruct EL as [st [EQ _]]. }
         { destruct rhs; [inversion EL | ].
           destruct s; [ inversion EL | ].
           destruct rhs; [ | inversion EL].
@@ -594,7 +601,7 @@ Module Intersection.
           apply in_flat_map in EL. destruct EL as [st1 [_ EL]].
           apply in_flat_map in EL; destruct EL as [st2 [_ EL]].
           apply in_map_iff in EL; destruct EL as [st3 [EQ _]].
-          inversion EQ; subst; auto. }
+            by inversion EQ. }
       Qed.
 
       Lemma consistensy_of_triple_term_rules:
@@ -657,7 +664,8 @@ Module Intersection.
       Variable G: @grammar Tt Vt.
       Hypothesis H_G_in_chomsky_normal_form: chomsky G.
       Hypothesis H_syntactic_analysis: syntactic_analysis_is_possible. 
-      
+
+      (* TODO: comment *)
       Hypothesis F1: DfaState * @var Vt * DfaState -> Vt.
       Hypothesis F2: Vt -> DfaState * @var Vt * DfaState.
 
@@ -672,7 +680,7 @@ Module Intersection.
             der (convert_rules G next) (V (from, r, to)) (to_phrase word).
         Proof.
           intros next r from to w DER FIN.          
-          rewrite <- (@lemma3 Tt Vt w) in FIN.
+          rewrite <- (@to_word_to_phraseK Tt Vt w) in FIN.
           set (wp1 := to_phrase (T:=Tt) (V:= _ * @var Vt * _) w) in *.
           set (wp2 := trans_phrase F2 (to_phrase w)) in *.
           assert (D: wp1 = wp2).
@@ -698,13 +706,13 @@ Module Intersection.
             assert (H1: der newG (V (from, r1, m)) (trans_phrase F2 w1)); eauto.
             assert (H2: der newG (V (m, r2, to)) (trans_phrase F2 w2)).
             { apply Ind2, test0.
-              rewrite <- lemma23; auto. }
+              rewrite <- to_word_cat; auto. }
             assert (in_H: In (R (V (from, r0, to)) [Vs (V(from, r1, m)); Vs (V (m, r2, to))]) newG).
             { apply forward_nonterminal_rule_inclusion; auto. }
             unfold trans_phrase.
             rewrite map_cat.
               by eapply derivability_step; eauto. }
-          { by apply lemma2. }
+          { by apply word_remains_terminal. }
         Qed.
 
         (* TODO: comment *)
@@ -715,7 +723,7 @@ Module Intersection.
         Proof.
           intros ? ? ? INT.
           destruct INT as [DFA [DER TER]].
-            by split; [apply der_in_initial_grammar_and_dfa_implies_der_in_triple_grammar | apply lemma2].
+            by split; [apply der_in_initial_grammar_and_dfa_implies_der_in_triple_grammar | apply word_remains_terminal].
         Qed.
         
       End MainForward.
@@ -753,7 +761,7 @@ Module Intersection.
               destruct r; eauto. }
             { clear H r from to. 
               intros r r1 r2 w1 w2 IN FIN1 FIN2 TER1 TER2 DER1 DER2.
-              rewrite lemma23; auto.
+              rewrite to_word_cat; auto.
               apply test0_1.
               destruct r as [[[fr r] to]].
               destruct r1 as [[[fr1 r1] to1]].
@@ -763,9 +771,10 @@ Module Intersection.
               destruct EQ as [EQ1 [EQ2 EQ3]]; simpl in *.
               subst fr to1 to2.
                 by rewrite EQ2 EQ3. }
-            { by apply lemma2. }
+            { by apply word_remains_terminal. }
           Qed.
 
+          (* TODO: comment *)
           Lemma der_in_triple_grammar_implies_dfa_accepts:
             forall var word,
               der (convert_rules G next) (V (from, var , to)) (to_phrase word) ->
@@ -811,13 +820,14 @@ Module Intersection.
               rewrite map_cat.
               apply @derivability_step with (r1 := r1) (r2 := r2) (T := Tt) (V := Vt); auto.
                 by apply backward_nonterminal_rule_inclusion in IN. }
-            { by apply lemma2. }
+            { by apply word_remains_terminal. }
           Qed.
-          
+
+          (* TODO: comment *)
           Lemma der_in_triple_gr_implies_der_in_initial_gr:
-            forall (s_start s_final: DfaState) (grammar_start : _) (w : word),  
-              der (convert_rules G next) (V (s_start, grammar_start, s_final)) (to_phrase w) ->
-              der G grammar_start (to_phrase w).
+            forall (s_start s_final: DfaState) (grammar_start: _) (word: word),  
+              der (convert_rules G next) (V (s_start, grammar_start, s_final)) (to_phrase word) ->
+              der G grammar_start (to_phrase word).
           Proof.
             intros start final g_start w.
             set (s := (start, g_start, final)).
@@ -843,7 +853,7 @@ Module Intersection.
           eapply der_in_triple_grammar_implies_dfa_accepts; eauto 1.
           split.
           - by eapply der_in_triple_gr_implies_der_in_initial_gr; eauto 1.
-          - by apply lemma2.
+          - by apply word_remains_terminal.
         Qed.
 
       End MainBackward. 
@@ -853,7 +863,7 @@ Module Intersection.
   End Lemmas.
   
   (** * Main Theorem *)
-  (** In this section we prove TODO. *)  
+  (** In this section we prove the main theorem about existence of grammar of intersection. *)  
   Section Main.
     
     Context {Terminal Nonterminal: eqType}.
