@@ -31,7 +31,7 @@ Module Intersection.
   (** In this section we prove a few useful facts. *)      
   Section Util.
  
-    Section Proections.
+    Section Projections.
       
       Context {A B C: Type}.
       
@@ -39,7 +39,7 @@ Module Intersection.
       Definition snd3 (t: A * B * C): B := let '(_, r,_) := t in r.
       Definition thi3 (t: A * B * C): C := let '(_, _, to) := t in to.
       
-    End Proections.
+    End Projections.
     
     Section Packing.
 
