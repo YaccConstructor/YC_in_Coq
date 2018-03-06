@@ -168,8 +168,8 @@ checkproofs:
 gallina: $(GFILES)
 
 html: $(GLOBFILES) $(VFILES)
-	- mkdir -p html2
-	$(COQDOC) -toc $(COQDOCFLAGS) -html2 $(COQDOCLIBS) -d html2 $(VFILES)
+	- mkdir -p docs/html
+	$(COQDOC) -toc $(COQDOCFLAGS) -html $(COQDOCLIBS) -d docs/html $(VFILES)
 
 gallinahtml: $(GLOBFILES) $(VFILES)
 	- mkdir -p docs/html
