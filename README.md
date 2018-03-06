@@ -1,4 +1,6 @@
-# YC_in_Coq
-Formalization of some parts of YC
+# Short description
+Some parts of formal languge theory in Coq.
 
-https://github.com/GKerfImf/YC_in_Coq/blob/master/html/fl.int.Union.html
+More details [here](https://yaccconstructor.github.io/YC_in_Coq).
+
+# TBA
