@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>fl.cfg.Chomsky</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library fl.cfg.Chomsky</h1>
+
+<div class="code">
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#"><span class="id" title="library">Basics</span></a> <a class="idref" href="fl.cfg.Separate.html#"><span class="id" title="library">Separate</span></a> <a class="idref" href="fl.cfg.Binarize.html#"><span class="id" title="library">Binarize</span></a> <a class="idref" href="fl.cfg.ElimE.html#"><span class="id" title="library">ElimE</span></a> <a class="idref" href="fl.cfg.ElimU.html#"><span class="id" title="library">ElimU</span></a>.<br/>
+<span class="id" title="keyword">Local Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">program_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="Chomsky"><span class="id" title="module">Chomsky</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Import</span> <span class="id" title="var">Base</span> <span class="id" title="var">Lists</span> <span class="id" title="var">Definitions</span> <span class="id" title="var">Symbols</span> <span class="id" title="var">Derivation</span> <span class="id" title="var">ElimE</span> <span class="id" title="var">Separate</span> <span class="id" title="var">Binarize</span> <span class="id" title="var">ElimU</span> <span class="id" title="var">Inlining</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="Chomsky.Chomsky"><span class="id" title="section">Chomsky</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">Tt</span> <span class="id" title="var">Vt</span>: <span class="id" title="keyword">Type</span>}.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">Tt_eqdec</span>: <a class="idref" href="fl.cfg.Base.html#c1731816e3fe7dbb40e25e75f2002544"><span class="id" title="notation">eq_dec</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a>}.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">Vt_eqdec</span>: <a class="idref" href="fl.cfg.Base.html#c1731816e3fe7dbb40e25e75f2002544"><span class="id" title="notation">eq_dec</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>}.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">TtToNat</span>: <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>}.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">VtToNat</span>: <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>}.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">NatToTt</span>: <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> }.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Context</span> {<span class="id" title="var">NatToVt</span>: <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>}.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Chomsky.Chomsky.Id1"><span class="id" title="variable">Id1</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToTt"><span class="id" title="variable">NatToTt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#1c39bf18749e5cc609e83c0a0ba5a372"><span class="id" title="notation">=</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Chomsky.Chomsky.Id2"><span class="id" title="variable">Id2</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToTt"><span class="id" title="variable">NatToTt</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#1c39bf18749e5cc609e83c0a0ba5a372"><span class="id" title="notation">=</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Chomsky.Chomsky.Id3"><span class="id" title="variable">Id3</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.VtToNat"><span class="id" title="variable">VtToNat</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToVt"><span class="id" title="variable">NatToVt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#1c39bf18749e5cc609e83c0a0ba5a372"><span class="id" title="notation">=</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Hypothesis</span> <a name="Chomsky.Chomsky.Id4"><span class="id" title="variable">Id4</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToVt"><span class="id" title="variable">NatToVt</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.VtToNat"><span class="id" title="variable">VtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#1c39bf18749e5cc609e83c0a0ba5a372"><span class="id" title="notation">=</span></a> <a class="idref" href="fl.cfg.Chomsky.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Chomsky.chomsky"><span class="id" title="definition">chomsky</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) := <a class="idref" href="fl.cfg.ElimE.html#ElimE.efree"><span class="id" title="definition">efree</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d82a7d96d3659d805ffe732283716822"><span class="id" title="notation">∧</span></a> <a class="idref" href="fl.cfg.Separate.html#Separate.uniform"><span class="id" title="definition">uniform</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d82a7d96d3659d805ffe732283716822"><span class="id" title="notation">∧</span></a> <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d82a7d96d3659d805ffe732283716822"><span class="id" title="notation">∧</span></a> <a class="idref" href="fl.cfg.ElimU.html#ElimU.unitfree"><span class="id" title="definition">unitfree</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Chomsky.normalize"><span class="id" title="definition">normalize</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.ElimU.html#ElimU.elimU"><span class="id" title="definition">elimU</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">∘</span></a> <a class="idref" href="fl.cfg.ElimE.html#ElimE.elimE"><span class="id" title="definition">elimE</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">∘</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">(</span></a>@<a class="idref" href="fl.cfg.Separate.html#Separate.sep"><span class="id" title="definition">sep</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.VtToNat"><span class="id" title="variable">VtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToVt"><span class="id" title="variable">NatToVt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Id3"><span class="id" title="variable">Id3</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">∘</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">(</span></a>@<a class="idref" href="fl.cfg.Binarize.html#Binarize.bin"><span class="id" title="definition">bin</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>     <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.VtToNat"><span class="id" title="variable">VtToNat</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.NatToVt"><span class="id" title="variable">NatToVt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Id3"><span class="id" title="variable">Id3</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Program.Basics.html#23b053569700a43fa034e3971fb6ded6"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab64"></a><h1 class="section">Normalization yields Chomsky normal form</h1>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.substG_preservesLength"><span class="id" title="lemma">substG_preservesLength</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) <span class="id" title="var">s</span> <span class="id" title="var">s'</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> (<a class="idref" href="fl.cfg.Inlining.html#Inlining.substG"><span class="id" title="definition">substG</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="fl.cfg.Chomsky.html#s"><span class="id" title="variable">s</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Lists.List.html#64ee52ab9627fca8d637e2f1207a2990"><span class="id" title="notation">[</span></a><a class="idref" href="fl.cfg.Chomsky.html#s'"><span class="id" title="variable">s'</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Lists.List.html#64ee52ab9627fca8d637e2f1207a2990"><span class="id" title="notation">]</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab65"></a><h2 class="section">Preservation of binarity</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.binary_sep"><span class="id" title="lemma">binary_sep</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> (@<a class="idref" href="fl.cfg.Separate.html#Separate.sep"><span class="id" title="definition">sep</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Id3"><span class="id" title="variable">Id3</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.binary_elimE"><span class="id" title="lemma">binary_elimE</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) : <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> (<a class="idref" href="fl.cfg.ElimE.html#ElimE.elimE"><span class="id" title="definition">elimE</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.binary_unit"><span class="id" title="lemma">binary_unit</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) : <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Binarize.html#Binarize.binary"><span class="id" title="definition">binary</span></a> (<a class="idref" href="fl.cfg.ElimU.html#ElimU.elimU"><span class="id" title="definition">elimU</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab66"></a><h2 class="section">Preservation of uniformness</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.excluded_free"><span class="id" title="lemma">excluded_free</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) : <a class="idref" href="fl.cfg.Separate.html#Separate.uniform"><span class="id" title="definition">uniform</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Separate.html#Separate.uniform"><span class="id" title="definition">uniform</span></a> (<a class="idref" href="fl.cfg.ElimE.html#ElimE.elimE"><span class="id" title="definition">elimE</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.excluded_unit"><span class="id" title="lemma">excluded_unit</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) : <a class="idref" href="fl.cfg.Separate.html#Separate.uniform"><span class="id" title="definition">uniform</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Separate.html#Separate.uniform"><span class="id" title="definition">uniform</span></a> (<a class="idref" href="fl.cfg.ElimU.html#ElimU.elimU"><span class="id" title="definition">elimU</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab67"></a><h2 class="section">Preservation of epsilon-freeness</h2>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.efree_unit"><span class="id" title="lemma">efree_unit</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) : <a class="idref" href="fl.cfg.ElimE.html#ElimE.efree"><span class="id" title="definition">efree</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.ElimE.html#ElimE.efree"><span class="id" title="definition">efree</span></a> (<a class="idref" href="fl.cfg.ElimU.html#ElimU.elimU"><span class="id" title="definition">elimU</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.chomsky_normalform"><span class="id" title="lemma">chomsky_normalform</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.chomsky"><span class="id" title="definition">chomsky</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.normalize"><span class="id" title="definition">normalize</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab68"></a><h1 class="section">Normalization preserves languages</h1>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.bin_dom"><span class="id" title="lemma">bin_dom</span></a> (<span class="id" title="var">G</span>: @<a class="idref" href="fl.cfg.Definitions.html#Definitions.grammar"><span class="id" title="definition">grammar</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a>):<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.Symbols.html#Symbols.dom"><span class="id" title="definition">dom</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="fl.cfg.Base.html#7aad22eb0bb1de04a39c897e4b52ab2f"><span class="id" title="notation">&lt;&lt;=</span></a> <a class="idref" href="fl.cfg.Symbols.html#Symbols.dom"><span class="id" title="definition">dom</span></a> (@<a class="idref" href="fl.cfg.Binarize.html#Binarize.bin"><span class="id" title="definition">bin</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Tt"><span class="id" title="variable">Tt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Vt"><span class="id" title="variable">Vt</span></a> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.TtToNat"><span class="id" title="variable">TtToNat</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky.Id3"><span class="id" title="variable">Id3</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>).<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Chomsky.language_normalform"><span class="id" title="lemma">language_normalform</span></a> <span class="id" title="var">G</span> <span class="id" title="var">A</span> <span class="id" title="var">u</span> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="fl.cfg.Definitions.html#Definitions.Vs"><span class="id" title="constructor">Vs</span></a> <a class="idref" href="fl.cfg.Chomsky.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="fl.cfg.Base.html#222c7b239caf3441a28b1c01e5e62c07"><span class="id" title="notation">el</span></a> <a class="idref" href="fl.cfg.Symbols.html#Symbols.dom"><span class="id" title="definition">dom</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.cfg.Chomsky.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#32263a1c8b01baecdff9deb038955bc9"><span class="id" title="notation">≠</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Lists.List.html#145bedf8a5d4a541831f3f70db03085c"><span class="id" title="notation">[]</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">(</span></a><a class="idref" href="fl.cfg.Derivation.html#Derivation.language"><span class="id" title="definition">language</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a> <a class="idref" href="fl.cfg.Chomsky.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="fl.cfg.Chomsky.html#u"><span class="id" title="variable">u</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#df1ced36fc33ce188051218bca314374"><span class="id" title="notation">↔</span></a> <a class="idref" href="fl.cfg.Derivation.html#Derivation.language"><span class="id" title="definition">language</span></a> (<a class="idref" href="fl.cfg.Chomsky.html#Chomsky.normalize"><span class="id" title="definition">normalize</span></a> <a class="idref" href="fl.cfg.Chomsky.html#G"><span class="id" title="variable">G</span></a>) <a class="idref" href="fl.cfg.Chomsky.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="fl.cfg.Chomsky.html#u"><span class="id" title="variable">u</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky.Chomsky"><span class="id" title="section">Chomsky</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="fl.cfg.Chomsky.html#Chomsky"><span class="id" title="module">Chomsky</span></a>.<br/>
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

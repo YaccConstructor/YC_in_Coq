@@ -51,7 +51,7 @@ Module Union.
         |  ((_,gr)::t) => label_grammar (length t) gr ++ (label_list_of_grammars t)
       end.
 
-    Fixpoint grammar_union (grammars : list (@var Vt * (@grammar Tt Vt))): @grammar Tt labeled_Vt :=
+    Fixpoint grammar_union (grammars : seq (@var Vt * (@grammar Tt Vt))): @grammar Tt labeled_Vt :=
       match grammars with
         |  [] => []
         |  (g::t) => label_grammar_and_add_start_rule (length t) g ++ (grammar_union t)
@@ -162,14 +162,11 @@ Module Union.
           label_phrase label (p1 ++ p2) = label_phrase label p1 ++ label_phrase label p2.
       Proof.
         intros.
-        induction p1.
-        reflexivity.
-        simpl.
-        rewrite IHp1; reflexivity.
+        induction p1; first by done.
+        simpl; rewrite IHp1; reflexivity.
       Qed.
       
     End Util.
-
 
     (** * Forward *)
     (** In this section we prove that derivability in one grammar from the

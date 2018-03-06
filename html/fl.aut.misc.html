@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>fl.aut.misc</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library fl.aut.misc</h1>
+
+<div class="code">
+<span class="comment">(*<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Authors:&nbsp;Thierry&nbsp;Coquand,&nbsp;Vincent&nbsp;Siles<br/>
+*)</span><br/>
+
+<br/>
+<span class="id" title="keyword">Set Implicit Arguments</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="Misc"><span class="id" title="module">Misc</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Section</span> <a name="Misc.Language"><span class="id" title="section">Language</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Variable</span> <a name="Misc.Language.char"><span class="id" title="variable">char</span></a>: <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.fintype.html#Finite.Exports.finType"><span class="id" title="abbreviation">finType</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Misc.word"><span class="id" title="definition">word</span></a> := <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.seq.html#seq"><span class="id" title="abbreviation">seq</span></a> <a class="idref" href="fl.aut.misc.html#Misc.Language.char"><span class="id" title="variable">char</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">Definition</span> <a name="Misc.language"><span class="id" title="definition">language</span></a> := <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrbool.html#pred"><span class="id" title="definition">pred</span></a> <a class="idref" href="fl.aut.misc.html#Misc.word"><span class="id" title="definition">word</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">End</span> <a class="idref" href="fl.aut.misc.html#Misc.Language"><span class="id" title="section">Language</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Misc.ltn_trans_tight"><span class="id" title="lemma">ltn_trans_tight</span></a> <span class="id" title="var">m</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> : <a class="idref" href="fl.aut.misc.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#1d63841e595f2805afd872744cbb1cce"><span class="id" title="notation">.-1</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Misc.ltn_trans_tight'"><span class="id" title="lemma">ltn_trans_tight'</span></a> <span class="id" title="var">m</span> <span class="id" title="var">n</span> <span class="id" title="var">p</span> : <a class="idref" href="fl.aut.misc.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#1d63841e595f2805afd872744cbb1cce"><span class="id" title="notation">.-1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a><a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#1d63841e595f2805afd872744cbb1cce"><span class="id" title="notation">.-1</span></a>.<br/>
+ 
+<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">Lemma</span> <a name="Misc.size_induction"><span class="id" title="lemma">size_induction</span></a> {<span class="id" title="var">X</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">f</span> : <a class="idref" href="fl.aut.misc.html#X"><span class="id" title="variable">X</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) (<span class="id" title="var">p</span>: <a class="idref" href="fl.aut.misc.html#X"><span class="id" title="variable">X</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a><span class="id" title="keyword">Prop</span>) :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">(</span></a> <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">(</span></a> <span class="id" title="keyword">∀</span> <span class="id" title="var">y</span>, <a class="idref" href="fl.aut.misc.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="fl.aut.misc.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="https://math-comp.github.io/math-comp/htmldoc/mathcomp.ssreflect.ssrnat.html#989c98e7ddd65d5bf37c334ff2076de8"><span class="id" title="notation">&lt;</span></a> <a class="idref" href="fl.aut.misc.html#f"><span class="id" title="variable">f</span></a> <a class="idref" href="fl.aut.misc.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="fl.aut.misc.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="fl.aut.misc.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.5pl1/stdlib/Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">∀</span> <span class="id" title="var">x</span>, <a class="idref" href="fl.aut.misc.html#p"><span class="id" title="variable">p</span></a> <a class="idref" href="fl.aut.misc.html#x"><span class="id" title="variable">x</span></a>.<br/>
+ 
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="fl.aut.misc.html#Misc"><span class="id" title="module">Misc</span></a>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
