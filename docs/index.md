@@ -1,6 +1,4 @@
-## Name
-
-Some description 
+YC_in_Coq is a repository of definitions and proofs for formal language theory.
 
 Our contribution
 --------------------------------------------------------------------------------
