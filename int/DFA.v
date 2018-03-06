@@ -10,7 +10,7 @@ Module DFA.
   Import Base Base2 Definitions.
   
   Section Definitions. 
-
+   
     Context {State T: Type}.
 
     Definition dfa_rule := State -> (@ter T) -> State.
