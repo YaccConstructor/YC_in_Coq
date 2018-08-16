@@ -237,6 +237,7 @@ Module Union.
         { by apply der_in_grammar_implies_der_in_union_grammar_1. }
       Qed.
 
+      (* TODO: check *)
       (* Now we can use two lemmas above to get the proof.
          (1) We use induction by (list of) grammars.
          (2) "Base" case is trivial.
@@ -245,16 +246,36 @@ Module Union.
            b) Case where we can just use inductive hypothesis. *)      
       Lemma same_union_forward:
         forall (grammars: seq (var * grammar)) word,
-          language_list_union (map grammar_to_language grammars) word ->
+          (exists s_l,
+            Derivation.language (snd s_l) (fst s_l) (to_phrase word) /\ In s_l grammars) ->
           grammar_to_language (V (start Vt), grammar_union grammars) word.
       Proof.
-        intros grammars word UNION.
-        induction grammars as [ |g gs]; first by done.
-        destruct UNION as [DER | UNION].
-        - destruct g as [st g].
-            by apply der_in_grammar_implies_der_in_union_grammar_2.
-        - by apply grammar_extention, IHgs.            
-      Qed.
+        move => grammars word [[st gr] [[DER TER] IN]]; simpl in DER.
+        unfold grammar_to_language in *.
+        About in_split.
+        have Fact: forall A l x, In x l -> exists l1 l2 : seq A, l = (l1 ++ (x :: l2)).
+        { clear; intros ? ? ? IN.
+          induction l; first by done.
+          simpl in IN; move: IN => [EQ|IN]; [clear IHl; subst| ].
+          { by exists [], l. }
+          { apply IHl in IN; clear IHl.
+            move: IN => [l1 [l2 EQ]].
+              by exists (a::l1), l2; simpl; rewrite -EQ. }
+        }
+        move: (Fact _ _ _ IN) => [l1 [l2 EQ]]; clear Fact.
+        rewrite EQ; clear EQ.
+        have Fact:
+          Derivation.der
+            (grammar_union (Tt:=Tt) ((st, gr) :: l2)) (V (start Vt)) (to_phrase word) -> 
+          Derivation.der
+            (grammar_union (Tt:=Tt) (l1 ++ (st, gr) :: l2)) (V (start Vt)) (to_phrase word).
+        { induction l1; intros.
+          { by rewrite cat0s. }
+          { apply IHl1 in H; clear IHl1.
+              by apply grammar_extention. }
+        } 
+          by apply Fact, der_in_grammar_implies_der_in_union_grammar_2.
+      Qed.      
 
     End Forward.
 
@@ -953,6 +974,7 @@ Module Union.
 
       End CutGrammars.
 
+      (* TODO: check *)
       (* Now we can use all the lemmas above to get the proof. 
          (1) We use choose_labeled_grammar lemma to make step into the correct grammar of the union-grammar
          (2) Next, lemma derivability_without_start_rules which states that we can make drop all the 
@@ -963,7 +985,8 @@ Module Union.
       Lemma same_union_backward:
         forall (grammars: seq (var * grammar)) word,
           grammar_to_language (V (start Vt), grammar_union grammars) word ->
-          language_list_union (map grammar_to_language grammars) word.
+          exists s_l,
+            Derivation.language (snd s_l) (fst s_l) (to_phrase word) /\ In s_l grammars.
       Proof.
         intros ? word DER.
         have H1 := choose_labeled_grammar DER. 
@@ -971,82 +994,32 @@ Module Union.
         clear DER; move: H => [g [a [u [v [H H0]]]]].
         apply derivability_without_start_rules in H0; last by done.
         rewrite -H in H0; apply cut_grammar in H0; last by done.
-        rewrite -H. 
-        eapply derivability_in_grammar_implies_derivability_in_union_grammar with (label := (length v)); eauto 2.
-          by rewrite -cat1s; apply in_or_app; right; apply in_or_app; left. 
-      Qed.
+        rewrite -H.
+        exists (a,g).
+        unfold Derivation.language. simpl; split; [split | ].
+        { apply update_grammar_simpl_is_injective with (label := length v). 
+            by rewrite -label_phrase_for_word. }
+        { by apply word_remains_terminal. }
+        { by rewrite -cat1s; apply in_or_app; right; apply in_or_app; left. }
+      Qed.      
       
     End Backward.
-
-    (** * Main Theorem *)
-    (** In this section we prove the equivalence in two formulations. *)
-    Section MainTheorem1.
-
-      Variable grammars: seq (var * grammar).
-      
-      Let l1 := language_list_union (map grammar_to_language grammars).
-      Let l2 := grammar_to_language (V (start Vt), grammar_union grammars).
-
-      Theorem correct_union_1:
-        language_eq l1 l2.
-      Proof.
-        apply mk_laguage_eq.
-        - apply same_union_forward.
-        - apply same_union_backward.
-      Qed.
-
-    End MainTheorem1.
 
     Section MainTheorem2.
 
       Variable grammars: seq (var * grammar).
       
-      Theorem correct_union_2:
+      Theorem correct_union:
         forall word, 
           Derivation.language (grammar_union grammars) (V (start Vt)) (to_phrase word) <->
-          exists s_l, Derivation.language (snd s_l) (fst s_l) (to_phrase word) /\ In s_l grammars.
+          exists s_l,
+            Derivation.language (snd s_l) (fst s_l) (to_phrase word) /\ In s_l grammars.
       Proof.
-        intros.
-        have Lem:
-          forall ls w,
-            language_list_union [seq grammar_to_language (Tt:=Tt) i | i <- ls] w <->
-            exists s_g, In s_g ls /\ Derivation.language s_g.2 s_g.1 (to_phrase w).
-        { intros T ls w; split; intros H.
-          { induction ls; first by done.
-            move: H => [DER|H].
-            { exists a; split; first by left.
-              destruct a; simpl in *.
-                by split; last eapply word_remains_terminal. 
-            }
-            { apply IHls in H; clear IHls.
-              move: H => [[s g] [EL [DER TER]]].
-                by exists (s,g); split; [right | ].
-            }
-          }
-          { move: H => [[s g] [EL [DER TER]]].
-            apply in_split in EL.
-            move: EL => [l1 [l2 EQ]].
-            rewrite EQ; clear EQ.
-              by induction l1; simpl in *; [left | right].
-          } 
-        }
         intros; split; intros.
-        { move: H => [DER TER].
-          move: (correct_union_1 grammars word0) => [_ SU].
-          apply Lem in SU; last by done.
-          move: SU => [s_g [EL LANG]].
-            by exists s_g; split.
-        }
-        { move: H => [s_g [LANG EL]].
-          move: (correct_union_1 grammars word0) => [SU1 _].
-          have HH: language_list_union [seq grammar_to_language i | i <- grammars] word0.
-          { by apply Lem; exists s_g; split. }
-          apply SU1 in HH.
-          split; first by done.
-          move: LANG => [DER TER].
-          induction word0; first by done.
-            by apply word_remains_terminal.
-        }
+        { apply same_union_backward.
+            by move: H => [DER TER]. }
+        { apply same_union_forward in H.
+            by split; last apply word_remains_terminal. } 
       Qed.      
       
     End MainTheorem2.

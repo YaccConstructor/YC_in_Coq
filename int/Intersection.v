@@ -884,7 +884,7 @@ Module Intersection.
         intros w.
         case: w => [|].
         { split; intros.
-          - apply Union.correct_union_2.
+          - apply Union.correct_union.
             exists (I1, [R I1 []]); simpl; split.
             + split; last by done.
                 by apply rDer.
@@ -894,7 +894,7 @@ Module Intersection.
         {   
           intros a w.
           split; [move => [DL GL]| move => IL].
-          apply Union.correct_union_2. 
+          apply Union.correct_union. 
           exists (I1, I2).
           split; last by right.
           { apply correct_split in DL.
@@ -908,7 +908,7 @@ Module Intersection.
               - destruct number_of_states; [by done | by apply F1].
             }
             { by split; last apply language_normalform. }
-            eapply Union.correct_union_2.
+            eapply Union.correct_union.
             exists ((V (s_start s_dfa, S, s_final s_dfa)), convert_grammar NG s_dfa); simpl.
             split.
             - by done.
@@ -919,7 +919,7 @@ Module Intersection.
           {  
             intros.
             unfold I2, I1, I in IL.
-            eapply Union.correct_union_2 in IL.
+            eapply Union.correct_union in IL.
             move: IL => [[gr v] [LANG EL]]; simpl in *.
             unfold TRS in EL.
             move: EL => [EL | [EL| EL ]].
@@ -928,7 +928,7 @@ Module Intersection.
               move: LANG => [DER _].
                 by apply non_epsilon_is_not_derivable_in_epsilon_grammar in DER. }
             { inversion EL; subst gr; subst v; clear EL.
-              have CORRECT := Union.correct_union_2 _ (a::w).
+              have CORRECT := Union.correct_union _ (a::w).
               apply CORRECT in LANG.
               move: LANG => [[v gr] [LANG EL]].
               unfold I2, I in EL.
@@ -963,7 +963,7 @@ Module Intersection.
               by move: EPS => [H|H]; apply: H.
           - clear EPS; exfalso; simpl in H.
             unfold I2, I1, I in H.
-            have CORRECT := Union.correct_union_2 _ []. 
+            have CORRECT := Union.correct_union _ []. 
             apply CORRECT in H.
             move: H => [[v gr] [LANG EL]]; simpl in LANG.
             unfold TRS in EL; apply in_map_iff in EL.
@@ -993,7 +993,7 @@ Module Intersection.
               - destruct number_of_states; [by done | by apply F1].
             }
             { by split; last apply language_normalform. }
-            eapply Union.correct_union_2.
+            eapply Union.correct_union.
             exists ((V (s_start s_dfa, S, s_final s_dfa)), convert_grammar NG s_dfa); simpl.
             split.
             - by done.
@@ -1003,7 +1003,7 @@ Module Intersection.
           }
           { intros.
             unfold I2, I1, I in IL.
-            eapply Union.correct_union_2 in IL.
+            eapply Union.correct_union in IL.
             move: IL => [[gr v] [LANG EL]]; simpl in *.
             unfold TRS in EL.
             apply in_map_iff in EL.
@@ -1027,5 +1027,5 @@ Module Intersection.
     Qed. 
     
   End Main.
-   
+    
 End Intersection.
