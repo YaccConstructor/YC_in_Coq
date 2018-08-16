@@ -3,8 +3,8 @@ Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Sets.Finite_sets.
 
-Require Import cfg.Definitions cfg.Derivation int.Intersection.
-Require Import GLL.GLL.
+Require Import cfg.Definitions (* cfg.Derivation int.Intersection. *).
+(* Require Import GLL.GLL. *)
 From mathcomp Require Import ssreflect ssrbool ssrfun eqtype ssrnat seq bigop fintype fingraph finfun finset choice.
 
 Section RA.

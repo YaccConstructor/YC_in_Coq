@@ -164,7 +164,7 @@ Module ElimU.
             assert (H1 : exists v', R B v' el elimU /\ derf elimU v' v).
             { induction IHD as [| | ? ? ? ? IH0 IHD0 IH1 IHD1] ; subst.
               - assert (H1 : @Vs Tt Vt B el [Vs B]) by auto.
-                destruct (T0 (Vs B) H1) as [t T']. inv T'.
+                destruct (T (Vs B) H1) as [t T']. inv T'.
               - exists u. split ; inv U' ; auto.
               - inv U'. inv IH1. rewrite app_nil_r in *. apply IHD0 ; auto. }
             destruct H1 as [v' [H1 H2]]. subst.

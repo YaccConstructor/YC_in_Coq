@@ -17,17 +17,17 @@ Module ElimE.
 
     Lemma derE_nullable (G : grammar) (A : var) (u : phrase) :
       der G A u -> (forall s, s el u -> nullable G s) -> nullable G (Vs A).
-    Proof with (apply U, in_or_app ; (try now left) ; (right ; apply in_or_app ; (try now left) ; try now right)).
+    Proof. 
       intros H U.
       induction H as [| u H | A B u w v H IH0 H0 IH1] ; eauto.
       apply IH0.
       intros s E.
       apply in_app_or in E.
       destruct E as [E | E].
-      + auto...
+      + auto.
       + destruct E as [E | E].
-        * rewrite <- E. apply IH1. intros s' V. auto... 
-        * apply in_app_or in E. destruct E as [E | E] ; firstorder. auto...
+        * rewrite <- E. apply IH1. intros s' V. (apply U, in_or_app ; (try now left) ; (right ; apply in_or_app ; (try now left) ; try now right)).
+        * apply in_app_or in E. destruct E as [E | E] ; firstorder. (apply U, in_or_app ; (try now left) ; (right ; apply in_or_app ; (try now left) ; try now right)).
     Qed.
 
     Hint Constructors der.

@@ -41,10 +41,10 @@ Module Inlining.
 
     Lemma substG_skip G s u :
       ~ s el symbs G -> substG G s u = G.
-    Proof with (intros H0 ; apply H ; simpl ; auto).
+    Proof. 
       intros H.
       induction G as [| [A v] Gr IHGr] ; [simpl ; auto|].
-      rewrite substG_skipRule ; [f_equal ; apply IHGr | ]...
+      rewrite substG_skipRule ; [f_equal ; apply IHGr | ]; (intros H0 ; apply H ; simpl ; auto).
     Qed.
 
     (** substitution of a fresh variable is reversible *)
@@ -198,7 +198,7 @@ Module Inlining.
       inv D1. specialize (IHMr G u' D2).
       eapply der_subset with (G2 := R B v :: Mr ++ G) in IHMr ; auto.
       rewrite derT_der_equiv in *.
-      apply derT_trans with (v0 := u'); eauto. apply derf_derT . apply derf_der_equiv. eauto.
+      apply derT_trans with (v0 := u'); eauto.
       now eapply substL_der.
     Qed.
 

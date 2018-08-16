@@ -61,12 +61,12 @@ Module Lists.
 
     Lemma slists_slist (X : Type) (xs ys : list X) (p : X -> Prop) (D : forall x, dec (p x)) :
       ys el slists p  xs <-> slist p ys xs.
-    Proof with (apply in_map_iff in H ; destruct H as [ys' [H0 H1]] ; subst ; auto).
+    Proof. 
       split.
       - revert ys.
         induction xs as [| s xs' IHu] ; intros ys H ; simpl in H.
         + destruct H as [H | H] ; [ rewrite <- H ; constructor | tauto ].
-        + decide (p s) ; [ apply in_app_iff in H ; destruct H as [H | H] | ] ; auto...
+        + decide (p s) ; [ apply in_app_iff in H ; destruct H as [H | H] | ] ; auto; (apply in_map_iff in H ; destruct H as [ys' [H0 H1]] ; subst ; auto).
       - induction 1 as [| s ys xs H H0 IH | s ys xs H IH] ; simpl ; auto.
         * decide (p s) ; firstorder.
         * assert (H1: exists ys', s::ys' = s::ys /\ ys' el (slists p xs)) by firstorder.
@@ -84,9 +84,9 @@ Module Lists.
 
     Lemma slist_trans (X : Type) (xs ys zs : list X) (p : X -> Prop) {pdec : forall x, dec (p x)} :
       slist p zs ys -> slist p ys xs -> slist p zs xs.
-    Proof with (remember (s :: xs) as zs ; induction H2 ; [congruence | | inv Heqzs ] ; auto).
+    Proof. 
       intros H1. revert xs.
-      induction H1 as [| s ys xs H H0 IH | s ys xs H IH] ; intros xs' H2 ; try now auto ; auto...
+      induction H1 as [| s ys xs H H0 IH | s ys xs H IH] ; intros xs' H2 ; try now auto ; auto; (remember (s :: xs) as zs ; induction H2 ; [congruence | | inv Heqzs ] ; auto).
     Qed.
 
     Lemma slist_append  (X : Type) (xs1 xs2 ys1 ys2 : list X) (p : X -> Prop) {pdec : forall x, dec (p x)} :
@@ -104,27 +104,27 @@ Module Lists.
 
     Lemma slist_inv (X : Type) (xs ys : list X) (p : X -> Prop) {pdec : forall x, dec (p x)} :
       slist p ys xs -> (forall s, s el ys -> p s) -> forall s, s el xs -> p s.
-    Proof with (destruct E as [E | E] ; try rewrite <- E ; auto).
+    Proof. 
       intros H0 H1 s E.
-      induction H0 ; auto...
+      induction H0 ; auto; (destruct E as [E | E] ; try rewrite <- E ; auto).
     Qed.
 
     Lemma slist_split (X : Type) (xs ys : list X) (p : X -> Prop) {pdec : forall x, dec (p x)} :
       slist p ys xs -> forall xs1 xs2, xs = xs1 ++ xs2 -> exists ys1 ys2, slist p ys1 xs1 /\ slist p ys2 xs2 /\ ys = ys1 ++ ys2.
-    Proof with (repeat split ; auto ; try inv IH0 ; auto).
+    Proof. 
       induction 1 as [ | s ys xs H H0 IH | s ys xs H IH] ; intros xs1 xs2 U.
       - exists [], [].
         symmetry in U.
         apply app_eq_nil in U ; destruct U as [H1 U].
         rewrite H1, U. repeat split ; auto.
       - destruct xs1, xs2 ; simpl in U ; (try now inv U) ; injection U ; intros U0 U1 ; subst.
-        + destruct (IH [] xs2 eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2...
-        + destruct (IH xs1 [] eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2...
-        + destruct (IH xs1 (x0 :: xs2) eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2...
+        + destruct (IH [] xs2 eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2; (repeat split ; auto ; try inv IH0 ; auto).
+        + destruct (IH xs1 [] eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2; (repeat split ; auto ; try inv IH0 ; auto).
+        + destruct (IH xs1 (x0 :: xs2) eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, ys2; (repeat split ; auto ; try inv IH0 ; auto).
       - destruct xs1, xs2 ; simpl in U ; (try now inv U) ; injection U ; intros U0 U1 ; subst.
-        + destruct (IH [] xs2 eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, (x :: ys2)...
-        + destruct (IH xs1 [] eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists (x :: ys1), ys2...
-        + destruct (IH xs1 (x0 :: xs2) eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists (x :: ys1), ys2...
+        + destruct (IH [] xs2 eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists ys1, (x :: ys2);(repeat split ; auto ; try inv IH0 ; auto).
+        + destruct (IH xs1 [] eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists (x :: ys1), ys2; (repeat split ; auto ; try inv IH0 ; auto).
+        + destruct (IH xs1 (x0 :: xs2) eq_refl) as [ys1 [ys2 [IH0 [IH1 IH2]]]]. exists (x :: ys1), ys2; (repeat split ; auto ; try inv IH0 ; auto).
     Qed.
 
 

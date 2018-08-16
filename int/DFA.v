@@ -61,7 +61,7 @@ Module DFA.
     Context {State T: Type}.
 
         
-    Theorem test0:
+    Example test0:
       forall (w1 w2: @word T)
         (next: dfa_rule)
         (from to: State),
@@ -72,7 +72,7 @@ Module DFA.
       induction w1; eauto.
     Qed.
     
-    Theorem test0_1:
+    Example test0_1:
       forall (w1 w2 : word)
         (next : dfa_rule)
         (from to: _),
@@ -83,71 +83,52 @@ Module DFA.
       induction w1; simpl; eauto.
     Qed.
 
-
     Theorem lemma2_3_1:
-      forall (d : dfa)  (w : word),
+      forall (d : @DFA.dfa State T)  (w : word),
         dfa_language d w ->
-        language_list_union (map (@s_dfa_language State T) (split_dfa d)) w.
+        exists sdfa : s_dfa,
+          In sdfa (split_dfa d) /\ s_dfa_language sdfa w.
     Proof.
-      intros d w.
-      destruct d.
-      set (d := {| start := start0; final := final0; next := next0 |}).
-      intro H1.
-      unfold split_dfa.
-      simpl.
-      unfold dfa_language in H1.
-      simpl in H1.
-      unfold accepts in H1.
-      simpl in H1.
+      intros dfa word LANG.
+      destruct dfa; unfold split_dfa; simpl.
+      unfold dfa_language, accepts in LANG; simpl in LANG.
       induction final0.
-      simpl in H1.
-      elim H1.
-      simpl in H1.
-      destruct H1.
-      simpl.
-      left.
-      unfold s_dfa_language.
-      simpl.
-      unfold s_accepts.
-      simpl.
-      auto.
-      auto.
-      simpl.
-      right.
-      apply IHfinal0.
-      auto.
-    Qed.
+      { simpl in LANG; elim LANG. }
+      { simpl in LANG.
+        destruct LANG; [subst a | ].
+        { exists ({|
+                     s_start := start0;
+                     s_final := final_state next0 start0 word;
+                     s_next := next0 |}).
+            by simpl; split; [left | ].
+        }
+        { 
+          apply IHfinal0 in H; clear IHfinal0.
+          move: H => [s_dfa [IN sLANG]].
+          unfold s_dfa_language, s_accepts; simpl.
+          exists s_dfa.
+            by split; [right | ].
+        }
+      }
+    Qed.    
 
     Theorem lemma2_3_2:
-      forall (d : dfa ) (w : word),
-        language_list_union (map s_dfa_language (split_dfa d)) w ->
-        @dfa_language State T d w.
+      forall (d : @dfa State T) (w : word),
+      (exists sdfa : s_dfa,
+          In sdfa (split_dfa d) /\ s_dfa_language sdfa w) ->
+      @dfa_language State T d w.
     Proof.
-      intros d w.
-      destruct d.
-      set (d := {| start := start0; final := final0; next := next0 |}).
-      unfold split_dfa.
-      simpl.
-      unfold dfa_language.
-      simpl.
-      unfold accepts.
-      simpl.
-      intro H1.
-      induction final0.
-      auto.
-      simpl in H1.
-      simpl.
-      destruct H1.
-      left.
-      unfold s_dfa_language in H.
-      simpl in H.
-      unfold s_accepts in H.
-      simpl in H.
-      auto.
-      auto. 
+      move => dfa word [s_dfa [IN sLANG]].
+      unfold dfa_language, accepts.
+      destruct dfa; unfold split_dfa in *; simpl in *.
+      induction final0; first by done.
+      simpl in IN; move: IN => [EQ|IN]; [subst; clear IHfinal0 | ].
+      { by left; unfold s_dfa_language, s_accepts in sLANG; simpl in sLANG. }
+      { apply IHfinal0 in IN; clear IHfinal0; rename IN into IH.
+          by simpl; right. } 
     Qed.
-
-
+    
+  
     (* TODO: del *)
     (* Feed tactic -- exploit with multiple arguments.
        (taken from http://comments.gmane.org/gmane.science.mathematics.logic.coq.club/7013) *)
@@ -158,39 +139,15 @@ Module DFA.
           assert foo as FOO; [|specialize (H FOO); clear FOO]
       end.
     
-    Lemma H_correct_split:
+    Lemma correct_split:
       forall dfa w,
         @dfa_language State T dfa w <->
         exists sdfa, In sdfa (split_dfa dfa) /\ s_dfa_language sdfa w.
     Proof.
       intros dfa w.
-      have Lem:
-        forall dfa w,
-          language_list_union (map s_dfa_language (split_dfa dfa)) w <->
-          exists sdfa, In sdfa (split_dfa dfa) /\ s_dfa_language sdfa w.
-      { clear; intros T V ? w; split; intros H.
-        { destruct dfa0 as [st fins rule].
-          induction fins; first by done.
-          move: H => [SDFA|LANG].
-          -  exists {| s_start := st; s_final := a; s_next := rule |}.
-             split; [ by left | by done]. 
-             feed IHfins. by done.
-            clear LANG; move: IHfins => [sdfa [EL LANG]].
-            exists sdfa; split. by right. by done.
-        }
-        move: H => [sdfa [EL LANG]]. 
-        apply in_split in EL.
-        move: EL => [l1 [l2 EQ]].
-        rewrite EQ.
-        simpl.
-        clear EQ.
-        induction l1.
-        simpl. left; by done.
-        simpl in *. by right.
-      } 
-      split; intros H.
-      - by apply Lem, lemma2_3_1.
-      - by apply lemma2_3_2, Lem. 
+      split; intros H. 
+      - by apply lemma2_3_1. 
+      - by apply lemma2_3_2. 
     Qed.
 
   End Lemmas.

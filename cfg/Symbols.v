@@ -1,18 +1,20 @@
-Require Export Definitions.
+Require Export cfg.Definitions.
 
 Module Symbols.
 
-  Import Base Lists Definitions. 
+  Import Base Lists.List Definitions.
+  Import ListNotations.
 
   (** * Domain and range **)
   Section DomainAndRange.
 
+    Print cfg.Definitions.
     Context {Tt Vt: Type}.
 
-    Fixpoint dom (G : @grammar Tt Vt) : list (@symbol Tt Vt):=
+    Fixpoint dom (G : @grammar Tt Vt) : list (@symbol Tt Vt) :=
       match G with
-        |[] => []
-        |R A u :: Gr => (Vs A) :: dom Gr
+      | [] => []
+      | R A u :: Gr => (Vs A) :: dom Gr
       end.
 
     Fixpoint ran G: list (@phrase Tt Vt) :=

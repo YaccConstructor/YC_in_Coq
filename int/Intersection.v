@@ -1,11 +1,11 @@
 Require Import List.
-From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice fintype bigop fingraph finfun finset.
 
 Require Import fl.cfg.Base fl.cfg.Definitions fl.cfg.Dec_Empty fl.cfg.Binarize fl.cfg.Chomsky.
 Require Import (* fl.int.Base2 *) (* INT.DFA*) fl.int.ChomskyInduction .
 Require Import Fin.
 Require Import fl.int.DFA fl.int.Union.
 
+From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice fintype bigop fingraph finfun finset.
 
 Module Intersection.
 
@@ -22,9 +22,9 @@ Module Intersection.
     end.
 
   Ltac feed_n n H :=
-    match constr:n with
-      | O => idtac
-      | (S ?m) => feed H ; [| feed_n m H]
+    match n with
+    | O => idtac
+    | (S ?m) => feed H ; [| feed_n m H]
     end.
   
   (** * Util *)
@@ -897,7 +897,7 @@ Module Intersection.
           apply Union.correct_union_2. 
           exists (I1, I2).
           split; last by right.
-          { apply H_correct_split in DL.
+          { apply correct_split in DL.
             move: DL => [s_dfa [EL LANG]].
             have MF := @main_forward Terminal Nonterminal number_of_states NG _ _ _ s_dfa S (a::w).
             feed_n 4 MF; try done.
@@ -943,7 +943,7 @@ Module Intersection.
               move: MB => [SDFA LANG].
               split.
               - unfold SDFAS in EL.
-                apply H_correct_split.
+                apply correct_split.
                 exists s_dfa; split; by done.
               - eapply (@language_normalform) with (Id3 := bijection) (TtToNat := TToNat); eauto 2.
                 intros CONTR; inversion CONTR. 
@@ -982,7 +982,7 @@ Module Intersection.
         { 
           intros a w.
           split; [move => [DL GL]| move => IL].
-          { apply H_correct_split in DL.
+          { apply correct_split in DL.
             move: DL => [s_dfa [EL LANG]].
             have MF := @main_forward Terminal Nonterminal number_of_states NG _ _ _ s_dfa S (a::w).
             feed_n 4 MF; try done.
@@ -1017,7 +1017,7 @@ Module Intersection.
             move: MB => [SDFA LANG].
             split.
             - unfold SDFAS in EL.
-              apply H_correct_split.
+              apply correct_split.
               exists s_dfa; split; by done.
             - eapply (@language_normalform) with (Id3 := bijection) (TtToNat := TToNat); eauto 2.
               intros CONTR; inversion CONTR.
@@ -1027,5 +1027,5 @@ Module Intersection.
     Qed. 
     
   End Main.
-  
+   
 End Intersection.
